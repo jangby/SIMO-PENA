@@ -10,6 +10,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
+use App\Models\OrganizationStructure;
 
 class PublicEventController extends Controller
 {
@@ -154,5 +155,11 @@ public function downloadOriginal($id)
             Log::error("Download Error: " . $e->getMessage());
             abort(500, 'Terjadi kesalahan server saat mengambil file.');
         }
+    }
+
+    public function structure()
+    {
+        $structures = OrganizationStructure::orderBy('level', 'asc')->get();
+        return view('public.structure', compact('structures'));
     }
 }

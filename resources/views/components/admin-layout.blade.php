@@ -48,7 +48,7 @@
                         <img src="{{ asset('logo/logopena.jpg') }}" class="relative h-11 w-11 object-contain drop-shadow-md bg-white/10 p-1 rounded-xl backdrop-blur-sm border border-white/20">
                     </div>
                     <div x-show="sidebarOpen" x-transition:enter="transition ease-out duration-300 delay-100" x-transition:enter-start="opacity-0 -translate-x-5" x-transition:enter-end="opacity-100 translate-x-0">
-                        <h1 class="font-extrabold text-xl tracking-tight leading-none text-white drop-shadow-sm">PAC IPNU</h1>
+                        <h1 class="font-extrabold text-xl tracking-tight leading-none text-white drop-shadow-sm">Pena</h1>
                         <p class="text-[10px] text-purple-100 font-bold tracking-widest uppercase">Admin Console</p>
                     </div>
                 </div>
@@ -94,6 +94,17 @@
                    {{ request()->routeIs('admin.members.*') ? 'bg-white/25 text-white shadow-lg border border-white/20 backdrop-blur-md' : 'text-purple-100 hover:bg-white/10 hover:text-white' }}">
                     <svg class="w-5 h-5 flex-shrink-0 transition-transform duration-300 group-hover:scale-110" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
                     <span class="ml-3 font-semibold text-sm whitespace-nowrap" x-show="sidebarOpen">Database Kader</span>
+                </a>
+
+                <a href="{{ route('admin.structures.index') }}" 
+                   class="group flex items-center px-4 py-3 rounded-2xl transition-all duration-300 relative overflow-hidden mb-1
+                   {{ request()->routeIs('admin.structures.*') ? 'bg-white/25 text-white shadow-lg border border-white/20 backdrop-blur-md' : 'text-purple-100 hover:bg-white/10 hover:text-white' }}">
+                    
+                    <svg class="w-5 h-5 flex-shrink-0 transition-transform duration-300 group-hover:scale-110" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
+                    </svg>
+                    
+                    <span class="ml-3 font-semibold text-sm whitespace-nowrap" x-show="sidebarOpen">Struktur Organisasi</span>
                 </a>
 
                  <a href="{{ route('admin.events.index') }}" 

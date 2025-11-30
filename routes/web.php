@@ -15,6 +15,7 @@ use App\Http\Controllers\Member\ArticleController as MemberArticleController;
 use App\Http\Controllers\Admin\GalleryController;
 use App\Http\Controllers\Member\AttendanceController;
 use App\Http\Controllers\Admin\LetterController;
+use App\Http\Controllers\Admin\StructureController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -28,6 +29,7 @@ Route::get('/', [PublicEventController::class, 'index'])->name('welcome');
 Route::get('/berita/{slug}', [PublicEventController::class, 'showArticle'])->name('public.article.show');
 Route::get('/dokumentasi', [PublicEventController::class, 'gallery'])->name('public.gallery'); // <--- Route Baru
 Route::get('/dokumentasi/download/{id}', [PublicEventController::class, 'downloadOriginal'])->name('public.gallery.download');
+Route::get('/struktur-organisasi', [PublicEventController::class, 'structure'])->name('public.structure');
 
 Route::get('/dashboard', function () {
     // LOGIKA TAMBAHAN:
@@ -77,6 +79,7 @@ Route::post('/admin/registrations/{registration}/approve', [RegistrationApproval
 Route::resource('/admin/articles', ArticleController::class)->names('admin.articles');
 Route::resource('/admin/galleries', GalleryController::class)->names('admin.galleries');
 Route::resource('/admin/letters', LetterController::class)->names('admin.letters');
+Route::resource('/admin/structures', StructureController::class)->names('admin.structures');
 
 // Resource Route otomatis membuat route index, create, store, destroy, dll
     Route::get('/admin/events/{event}/manage', [EventController::class, 'manage'])->name('admin.events.manage');

@@ -80,11 +80,11 @@
         </div>
 
         <div class="px-6 grid grid-cols-4 gap-4 mb-8">
-            <a href="#event-list" class="flex flex-col items-center gap-2 group">
+            <a href="{{ route('public.structure') }}" class="flex flex-col items-center gap-2 group">
                 <div class="w-14 h-14 bg-white rounded-2xl shadow-lg shadow-purple-900/20 flex items-center justify-center text-[#83218F] group-active:scale-90 transition">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
                 </div>
-                <span class="text-[10px] font-bold text-white/90">Event</span>
+                <span class="text-[10px] font-bold text-white/90">Struktur</span>
             </a>
             <a href="{{ route('public.gallery') }}" class="flex flex-col items-center gap-2 group">
                 <div class="w-14 h-14 bg-white rounded-2xl shadow-lg shadow-purple-900/20 flex items-center justify-center text-yellow-500 group-active:scale-90 transition">
