@@ -10,9 +10,18 @@ use Illuminate\Support\Facades\Storage;
 class EventController extends Controller
 {
     // 1. Tampilkan Daftar Event
-    public function index()
+    public function index(Request $request)
     {
-        $events = Event::latest()->paginate(10);
+        // Ambil data event + Hitung jumlah pendaftar (registrations_count)
+        $query = Event::withCount('registrations')->latest();
+
+        // Fitur Pencarian
+        if ($request->has('search') && $request->search != '') {
+            $query->where('title', 'like', '%' . $request->search . '%');
+        }
+
+        $events = $query->paginate(10);
+
         return view('admin.events.index', compact('events'));
     }
 

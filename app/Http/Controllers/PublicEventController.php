@@ -8,6 +8,8 @@ use App\Models\Article; // Import Model Article
 use App\Models\Gallery;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 
 class PublicEventController extends Controller
 {
@@ -114,5 +116,43 @@ class PublicEventController extends Controller
         $waUrl = "https://wa.me/$adminPhone?text=" . urlencode($message);
         
         return redirect()->away($waUrl);
+    }
+
+    // Fungsi Download dari GDrive
+public function downloadOriginal($id)
+    {
+        try {
+            $gallery = Gallery::findOrFail($id);
+            
+            // 1. Cek apakah kolom ada isinya
+            if (!$gallery->original_image) {
+                abort(404, 'Data file tidak ditemukan di database.');
+            }
+
+            $filename = $gallery->original_image;
+
+            // 2. Cek apakah file benar-benar ada di Google Drive
+            // Kita log dulu untuk memastikan path yang dicari benar
+            Log::info("Mencoba download dari GDrive: " . $filename);
+
+            if (!Storage::disk('google')->exists($filename)) {
+                Log::error("File tidak ditemukan di GDrive: " . $filename);
+                abort(404, 'File fisik tidak ditemukan di Cloud Storage.');
+            }
+
+            // 3. Ambil Mime Type (Jenis file)
+            $mimeType = Storage::disk('google')->mimeType($filename);
+
+            // 4. Lakukan Stream Download (Lebih stabil untuk Cloud)
+            return response()->streamDownload(function () use ($filename) {
+                echo Storage::disk('google')->get($filename);
+            }, $filename, [
+                'Content-Type' => $mimeType,
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error("Download Error: " . $e->getMessage());
+            abort(500, 'Terjadi kesalahan server saat mengambil file.');
+        }
     }
 }

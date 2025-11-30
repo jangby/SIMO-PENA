@@ -7,6 +7,8 @@ use App\Models\Event;
 use App\Models\EventSchedule;
 use App\Models\Registration;
 use Illuminate\Http\Request;
+use App\Exports\EventParticipantsExport;
+use Maatwebsite\Excel\Facades\Excel;
 
 class EventManagementController extends Controller
 {
@@ -122,4 +124,9 @@ class EventManagementController extends Controller
             'time' => now()->format('H:i')
         ]);
     }
+
+    public function exportExcel(Event $event)
+{
+    return Excel::download(new EventParticipantsExport($event->id), 'peserta-'.$event->id.'.xlsx');
+}
 }

@@ -14,6 +14,7 @@ use App\Http\Controllers\Admin\ArticleController;
 use App\Http\Controllers\Member\ArticleController as MemberArticleController;
 use App\Http\Controllers\Admin\GalleryController;
 use App\Http\Controllers\Member\AttendanceController;
+use App\Http\Controllers\Admin\LetterController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -26,6 +27,7 @@ Route::post('/daftar/{event}', [PublicEventController::class, 'store'])->name('e
 Route::get('/', [PublicEventController::class, 'index'])->name('welcome');
 Route::get('/berita/{slug}', [PublicEventController::class, 'showArticle'])->name('public.article.show');
 Route::get('/dokumentasi', [PublicEventController::class, 'gallery'])->name('public.gallery'); // <--- Route Baru
+Route::get('/dokumentasi/download/{id}', [PublicEventController::class, 'downloadOriginal'])->name('public.gallery.download');
 
 Route::get('/dashboard', function () {
     // LOGIKA TAMBAHAN:
@@ -66,6 +68,7 @@ Route::middleware(['auth', 'verified', 'admin'])->group(function () {
     Route::get('/admin/dashboard', [DashboardController::class, 'index'])
         ->name('admin.dashboard');
 
+    Route::get('/admin/members/export', [MemberController::class, 'export'])->name('admin.members.export');
     Route::get('/admin/members', [MemberController::class, 'index'])->name('admin.members.index');
     Route::get('/admin/members/{user}', [MemberController::class, 'show'])->name('admin.members.show');
     Route::get('/admin/registrations', [RegistrationApprovalController::class, 'index'])->name('admin.registrations.index');
@@ -73,6 +76,7 @@ Route::get('/admin/registrations/{registration}', [RegistrationApprovalControlle
 Route::post('/admin/registrations/{registration}/approve', [RegistrationApprovalController::class, 'approve'])->name('admin.registrations.approve');
 Route::resource('/admin/articles', ArticleController::class)->names('admin.articles');
 Route::resource('/admin/galleries', GalleryController::class)->names('admin.galleries');
+Route::resource('/admin/letters', LetterController::class)->names('admin.letters');
 
 // Resource Route otomatis membuat route index, create, store, destroy, dll
     Route::get('/admin/events/{event}/manage', [EventController::class, 'manage'])->name('admin.events.manage');
@@ -104,6 +108,8 @@ Route::resource('/admin/galleries', GalleryController::class)->names('admin.gall
         Route::post('/attendance/{registration}/checkin', [EventManagementController::class, 'checkIn'])->name('attendance.checkin');
         Route::post('/attendance/{registration}/cancel', [EventManagementController::class, 'cancelCheckIn'])->name('attendance.cancel');
         Route::post('/scan-qr', [EventManagementController::class, 'scanQr'])->name('attendance.scan');
+
+        Route::get('/participants/export', [EventManagementController::class, 'exportExcel'])->name('participants.export');
     });
 });
 
