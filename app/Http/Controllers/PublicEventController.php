@@ -1,0 +1,118 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Models\Event;
+use App\Models\Registration;
+use App\Models\Article; // Import Model Article
+use App\Models\Gallery;
+use Illuminate\Http\Request;
+use Illuminate\Support\Str;
+
+class PublicEventController extends Controller
+{
+    // --- 1. HALAMAN LANDING PAGE (BERANDA) ---
+    public function index()
+    {
+        $events = Event::where('status', 'open')->latest()->get();
+        
+        $articles = Article::with('author')
+                    ->where('status', 'published')
+                    ->latest()
+                    ->take(3)
+                    ->get();
+
+        // Ambil 5 Foto Terbaru untuk Slider
+        $galleries = Gallery::latest()->take(5)->get();
+
+        // Kirim variabel $galleries ke view
+        return view('welcome', compact('events', 'articles', 'galleries'));
+    }
+
+    // Halaman Lihat Semua Dokumentasi
+    public function gallery()
+    {
+        $galleries = Gallery::latest()->paginate(12);
+        return view('public.gallery', compact('galleries'));
+    }
+
+    // --- 2. HALAMAN BACA ARTIKEL (DETAIL) ---
+    public function showArticle($slug)
+    {
+        $article = Article::with('author')
+                    ->where('slug', $slug)
+                    ->where('status', 'published')
+                    ->firstOrFail();
+
+        return view('public.article', compact('article'));
+    }
+
+    // --- 3. FORMULIR PENDAFTARAN KEGIATAN ---
+    public function showRegisterForm(Event $event)
+    {
+        // Pastikan event masih buka, kalau tutup redirect ke home
+        if ($event->status !== 'open') {
+            return redirect()->route('welcome')->with('error', 'Pendaftaran acara ini sudah ditutup.');
+        }
+
+        return view('public.register', compact('event'));
+    }
+
+    // --- 4. PROSES SIMPAN PENDAFTARAN ---
+    public function store(Request $request, Event $event)
+    {
+        // A. Validasi Input
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'birth_place' => 'required|string|max:100', // Tempat Lahir
+            'birth_date' => 'required|date',             // Tanggal Lahir
+            'phone' => 'required|numeric',
+            'school_origin' => 'required|string|max:255',
+            'address' => 'required|string',
+            
+            // Validasi File: Wajib Gambar/PDF max 2MB
+            'payment_proof' => 'required|image|max:2048', 
+            
+            // Sertifikat hanya wajib jika event tipe 'lakmud'
+            'certificate_file' => $event->type == 'lakmud' ? 'required|image|mimes:jpeg,png,jpg,pdf|max:2048' : 'nullable',
+        ]);
+
+        // B. Upload File Bukti Pembayaran
+        $paymentPath = null;
+        if ($request->hasFile('payment_proof')) {
+            $paymentPath = $request->file('payment_proof')->store('payments', 'public');
+        }
+
+        // C. Upload File Sertifikat (Jika ada)
+        $certPath = null;
+        if ($request->hasFile('certificate_file')) {
+            $certPath = $request->file('certificate_file')->store('certificates', 'public');
+        }
+
+        // D. Simpan ke Database
+        Registration::create([
+            'event_id' => $event->id,
+            'name' => $request->name,
+            'birth_place' => $request->birth_place,
+            'birth_date' => $request->birth_date,
+            'phone' => $request->phone,
+            'school_origin' => $request->school_origin,
+            'address' => $request->address,
+            'payment_proof' => $paymentPath,
+            'certificate_file' => $certPath,
+            'status' => 'pending' // Default pending, menunggu admin approve
+        ]);
+
+        // E. Redirect ke WhatsApp Admin
+        $eventName = $event->title;
+        // Ganti dengan nomor Admin/Sekretaris (Format: 628xxx)
+        $adminPhone = '628xxxxxxxxxx'; 
+        
+        $message = "Assalamu'alaikum, saya *$request->name* telah mendaftar acara *$eventName*.\n\n"
+                 . "Data diri dan bukti pembayaran sudah saya upload di website. Mohon diverifikasi. Terima kasih.";
+        
+        $waUrl = "https://wa.me/$adminPhone?text=" . urlencode($message);
+        
+        return redirect()->away($waUrl);
+    }
+}
