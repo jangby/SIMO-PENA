@@ -63,9 +63,6 @@
                                 Masuk
                             </a>
                             
-                            <a href="{{ route('register') }}" class="bg-[#83218F] text-white px-4 md:px-5 py-2 rounded-full font-bold text-xs md:text-sm shadow-lg shadow-purple-200 transition transform hover:-translate-y-0.5 hover:bg-purple-800">
-                                Daftar
-                            </a>
                         @endauth
                     @endif
                 </div>
