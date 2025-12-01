@@ -140,6 +140,13 @@
                     <span class="ml-3 font-semibold text-sm whitespace-nowrap" x-show="sidebarOpen">E-Arsip Surat</span>
                 </a>
 
+                <a href="{{ route('admin.socials.index') }}" 
+   class="group flex items-center px-4 py-3 rounded-2xl transition-all duration-300 relative overflow-hidden mb-1
+   {{ request()->routeIs('admin.socials.*') ? 'bg-white/25 text-white shadow-lg border border-white/20 backdrop-blur-md' : 'text-purple-100 hover:bg-white/10 hover:text-white' }}">
+    <svg class="w-5 h-5 flex-shrink-0 transition-transform duration-300 group-hover:scale-110" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"></path></svg>
+    <span class="ml-3 font-semibold text-sm whitespace-nowrap" x-show="sidebarOpen">Sosial Media</span>
+</a>
+
             </nav>
 
             <div class="relative z-10 border-t border-white/10 bg-[#6d1b77]/30 backdrop-blur-sm p-4">

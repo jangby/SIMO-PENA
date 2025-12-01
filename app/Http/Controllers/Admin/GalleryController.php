@@ -83,4 +83,73 @@ class GalleryController extends Controller
         $gallery->delete();
         return redirect()->back()->with('success', 'Foto dihapus dari Server & GDrive.');
     }
+
+    // --- FITUR SINKRONISASI GOOGLE DRIVE ---
+    // --- FITUR SINKRONISASI GOOGLE DRIVE (FIXED) ---
+    public function syncGoogleDrive()
+    {
+        try {
+            // PERBAIKAN: Gunakan method files() dengan argumen string kosong '' (root)
+            // Ini akan mengembalikan array path file: ['foto1.jpg', 'foto2.png', ...]
+            $files = Storage::disk('google')->files(''); 
+
+            $count = 0;
+
+            foreach ($files as $filePath) {
+                // $filePath adalah string nama file di GDrive
+                
+                // 1. Pastikan file tersebut adalah gambar
+                if ($this->isImage($filePath)) {
+                    
+                    // 2. Cek database (hindari duplikat)
+                    $exists = Gallery::where('original_image', $filePath)->exists();
+
+                    if (!$exists) {
+                        // --- PROSES IMPORT ---
+                        
+                        // A. Ambil isi file dari Google Drive
+                        $fileContent = Storage::disk('google')->get($filePath);
+                        
+                        // B. Buat Thumbnail WebP di VPS
+                        $filenameWebp = 'imported_' . uniqid() . '.webp';
+                        
+                        // Proses dengan Intervention Image
+                        $manager = Image::read($fileContent);
+                        $manager->scale(width: 800); // Resize biar ringan
+                        $encoded = $manager->toWebp(quality: 75);
+                        
+                        // Simpan ke VPS
+                        Storage::disk('public')->put('gallery/' . $filenameWebp, (string) $encoded);
+
+                        // C. Catat ke Database
+                        Gallery::create([
+                            'title' => pathinfo($filePath, PATHINFO_FILENAME), // Nama file jadi judul
+                            'image' => 'gallery/' . $filenameWebp, // Path lokal (WebP)
+                            'original_image' => $filePath, // Path GDrive (Asli)
+                        ]);
+
+                        $count++;
+                    }
+                }
+            }
+
+            if ($count > 0) {
+                return back()->with('success', "Berhasil menarik $count foto baru dari Google Drive!");
+            } else {
+                return back()->with('success', 'Semua foto di Google Drive sudah tersinkronisasi.');
+            }
+
+        } catch (\Exception $e) {
+            // Tampilkan error spesifik untuk debugging
+            return back()->with('error', 'Gagal sinkronisasi: ' . $e->getMessage());
+        }
+    }
+
+    // Helper untuk cek ekstensi gambar
+    private function isImage($path)
+    {
+        $extensions = ['jpg', 'jpeg', 'png', 'webp', 'bmp'];
+        $ext = strtolower(pathinfo($path, PATHINFO_EXTENSION));
+        return in_array($ext, $extensions);
+    }
 }

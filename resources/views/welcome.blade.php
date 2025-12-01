@@ -194,13 +194,53 @@
             </div>
             @endif
 
-            <div class="text-center pt-8 border-t border-dashed border-gray-200">
-                <img src="{{ asset('logo/logopena.jpg') }}" class="w-8 h-8 mx-auto mb-2 opacity-50 grayscale">
-                <p class="text-[10px] text-gray-400">
-                    &copy; {{ date('Y') }} PAC IPNU Limbangan.<br/>
-                    <span class="italic">Belajar, Berjuang, Bertakwa.</span>
-                </p>
+            <div class="pt-8 mt-8 border-t border-dashed border-gray-200">
+                
+                @if(isset($socials) && $socials->isNotEmpty())
+                <div class="flex flex-wrap justify-center gap-3 mb-6">
+                    @foreach($socials as $soc)
+                        <a href="{{ $soc->url }}" target="_blank" class="group relative w-10 h-10 flex items-center justify-center rounded-full bg-white border border-gray-100 shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-1 overflow-hidden">
+                            
+                            <div class="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300
+                                {{ $soc->platform == 'instagram' ? 'bg-gradient-to-tr from-yellow-400 via-red-500 to-purple-500' : '' }}
+                                {{ $soc->platform == 'tiktok' ? 'bg-black' : '' }}
+                                {{ $soc->platform == 'youtube' ? 'bg-red-600' : '' }}
+                                {{ $soc->platform == 'facebook' ? 'bg-blue-600' : '' }}
+                                {{ $soc->platform == 'twitter' ? 'bg-black' : '' }}
+                                {{ $soc->platform == 'website' ? 'bg-green-500' : '' }}
+                            "></div>
+
+                            <div class="relative z-10 text-gray-400 group-hover:text-white transition-colors duration-300">
+                                @if($soc->platform == 'instagram')
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 2c2.717 0 3.056.01 4.122.06 1.065.05 1.79.217 2.428.465.66.254 1.216.598 1.772 1.153a4.908 4.908 0 011.153 1.772c.247.637.415 1.363.465 2.428.047 1.066.06 1.405.06 4.122 0 2.717-.01 3.056-.06 4.122-.05 1.065-.217 1.79-.465 2.428a4.883 4.883 0 01-1.153 1.772 4.915 4.915 0 01-1.772 1.153c-.637.247-1.363.415-2.428.465-1.066.047-1.405.06-4.122.06-2.717 0-3.056-.01-4.122-.06-1.065-.05-1.79-.217-2.428-.465a4.89 4.89 0 01-1.772-1.153 4.904 4.904 0 01-1.153-1.772c-.247-.637-.415-1.363-.465-2.428C2.013 15.056 2 14.717 2 12c0-2.717.01-3.056.06-4.122.05-1.065.217-1.79.465-2.428a4.88 4.88 0 011.153-1.772A4.897 4.897 0 015.468 2.525c.637-.247 1.363-.415 2.428-.465C8.944 2.013 9.283 2 12 2z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 7a5 5 0 100 10 5 5 0 000-10z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.5 6.5h.01"></path></svg>
+                                @elseif($soc->platform == 'tiktok')
+                                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.03 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.35-1.17 1.09-1.07 1.93.03.58.49 1.13 1.07 1.3.74.22 1.65.22 2.22-.45.62-.73.54-1.71.54-2.61V.02z"/></svg>
+                                @elseif($soc->platform == 'youtube')
+                                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M19.615 3.184c-3.604-.246-11.631-.245-15.23 0-3.897.266-4.356 2.62-4.385 8.816.029 6.185.484 8.549 4.385 8.816 3.6.245 11.626.246 15.23 0 3.897-.266 4.356-2.62 4.385-8.816-.029-6.185-.484-8.549-4.385-8.816zm-10.615 12.816v-8l8 3.993-8 4.007z"/></svg>
+                                @elseif($soc->platform == 'facebook')
+                                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M9 8h-3v4h3v12h5v-12h3.642l.358-4h-4v-1.667c0-.955.192-1.333 1.115-1.333h2.885v-5h-3.808c-3.596 0-5.192 1.583-5.192 4.615v3.385z"/></svg>
+                                @elseif($soc->platform == 'twitter')
+                                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+                                @else
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"></path></svg>
+                                @endif
+                            </div>
+                        </a>
+                    @endforeach
+                </div>
+                @endif
+
+                <div class="text-center">
+                    <img src="{{ asset('logo/logopena.jpg') }}" class="w-8 h-8 mx-auto mb-2 opacity-50 grayscale hover:grayscale-0 transition duration-500">
+                    <p class="text-[10px] text-gray-400">
+                        &copy; {{ date('Y') }} Pena Limbangan.<br/>
+                        <span class="italic text-gray-300">Belajar, Berjuang, Bertakwa.</span>
+                    </p>
+                </div>
             </div>
+
+        </div>
+    </div>
 
         </div>
     </div>

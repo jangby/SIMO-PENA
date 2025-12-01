@@ -16,6 +16,7 @@ use App\Http\Controllers\Admin\GalleryController;
 use App\Http\Controllers\Member\AttendanceController;
 use App\Http\Controllers\Admin\LetterController;
 use App\Http\Controllers\Admin\StructureController;
+use App\Http\Controllers\Admin\SocialMediaController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -77,9 +78,11 @@ Route::middleware(['auth', 'verified', 'admin'])->group(function () {
 Route::get('/admin/registrations/{registration}', [RegistrationApprovalController::class, 'show'])->name('admin.registrations.show');
 Route::post('/admin/registrations/{registration}/approve', [RegistrationApprovalController::class, 'approve'])->name('admin.registrations.approve');
 Route::resource('/admin/articles', ArticleController::class)->names('admin.articles');
+Route::get('/admin/galleries/sync', [GalleryController::class, 'syncGoogleDrive'])->name('admin.galleries.sync');
 Route::resource('/admin/galleries', GalleryController::class)->names('admin.galleries');
 Route::resource('/admin/letters', LetterController::class)->names('admin.letters');
 Route::resource('/admin/structures', StructureController::class)->names('admin.structures');
+Route::resource('/admin/socials', SocialMediaController::class)->only(['index', 'store', 'destroy'])->names('admin.socials');
 
 // Resource Route otomatis membuat route index, create, store, destroy, dll
     Route::get('/admin/events/{event}/manage', [EventController::class, 'manage'])->name('admin.events.manage');

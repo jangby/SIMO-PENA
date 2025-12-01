@@ -11,25 +11,31 @@ use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use App\Models\OrganizationStructure;
+use App\Models\SocialMedia; // <--- TAMBAHKAN INI
 
 class PublicEventController extends Controller
 {
     // --- 1. HALAMAN LANDING PAGE (BERANDA) ---
     public function index()
     {
+        // Data Event
         $events = Event::where('status', 'open')->latest()->get();
         
+        // Data Artikel
         $articles = Article::with('author')
                     ->where('status', 'published')
                     ->latest()
                     ->take(3)
                     ->get();
 
-        // Ambil 5 Foto Terbaru untuk Slider
+        // Data Galeri
         $galleries = Gallery::latest()->take(5)->get();
 
-        // Kirim variabel $galleries ke view
-        return view('welcome', compact('events', 'articles', 'galleries'));
+        // Data Sosial Media (BARU)
+        $socials = SocialMedia::all(); // <--- TAMBAHKAN INI
+
+        // Kirim semua variabel ke view (tambahkan 'socials')
+        return view('welcome', compact('events', 'articles', 'galleries', 'socials'));
     }
 
     // Halaman Lihat Semua Dokumentasi
