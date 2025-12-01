@@ -14,6 +14,7 @@ use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 use PhpOffice\PhpSpreadsheet\Style\Border;
 use PhpOffice\PhpSpreadsheet\Style\Fill;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
+use Carbon\Carbon;
 
 class MembersExport implements FromCollection, WithHeadings, WithMapping, WithStyles, ShouldAutoSize, WithEvents
 {
@@ -27,86 +28,94 @@ class MembersExport implements FromCollection, WithHeadings, WithMapping, WithSt
     public function headings(): array
     {
         return [
-            ['DATA ANGGOTA PAC IPNU KECAMATAN LIMBANGAN'], // Baris 1: Judul Besar
-            ['Dicetak pada: ' . date('d F Y, H:i') . ' WIB'], // Baris 2: Tanggal Cetak
-            [''], // Baris 3: Kosong (Spasi)
-            [     // Baris 4: Header Kolom Asli
+            ['DATA ANGGOTA PAC IPNU KECAMATAN LIMBANGAN'], 
+            ['Dicetak pada: ' . date('d F Y, H:i') . ' WIB'], 
+            [''], 
+            [     
                 'No',
                 'Nama Lengkap',
                 'Email',
                 'No HP (WA)',
                 'Tempat Lahir',
                 'Tanggal Lahir',
-                'Asal Sekolah / Komisariat',
+                'Delegasi',
                 'Alamat Domisili',
                 'Bergabung Pada',
             ]
         ];
     }
 
-    // 3. MAPPING DATA (Isi Per Baris)
-    protected $rowNumber = 0; // Untuk nomor urut
+    // 3. MAPPING DATA (Isi Per Baris - BAGIAN YG DIPERBAIKI)
+    protected $rowNumber = 0; 
 
     public function map($user): array
     {
         $this->rowNumber++;
         
+        // Ambil Profile dengan aman
+        // Jika profile null (kosong), kita anggap objek kosong agar tidak error
+        $profile = $user->profile;
+
+        // Logika Tanggal Lahir Aman
+        $tglLahir = '-';
+        if ($profile && $profile->birth_date) {
+            try {
+                $tglLahir = Carbon::parse($profile->birth_date)->format('d-m-Y');
+            } catch (\Exception $e) {
+                $tglLahir = $profile->birth_date; // Jika format salah, tampilkan apa adanya
+            }
+        }
+
         return [
             $this->rowNumber,
             $user->name,
             $user->email,
-            $user->profile->phone ?? '-',
-            $user->profile->birth_place ?? '-',
-            $user->profile->birth_date ? \Carbon\Carbon::parse($user->profile->birth_date)->format('d-m-Y') : '-',
-            $user->profile->school_origin ?? '-',
-            $user->profile->address ?? '-',
+            // Gunakan Null Coalescing Operator (??) untuk data profile
+            $profile->phone ?? '-', 
+            $profile->birth_place ?? '-', 
+            $tglLahir, // <--- Sudah aman sekarang
+            $profile->school_origin ?? '-',
+            $profile->address ?? '-',
             $user->created_at->format('d-m-Y'),
         ];
     }
 
-    // 4. STYLING DASAR (Font & Warna Header)
+    // 4. STYLING DASAR
     public function styles(Worksheet $sheet)
     {
         return [
-            // Baris 1 (Judul Utama): Bold, Ukuran 16, Tengah
             1 => [
                 'font' => ['bold' => true, 'size' => 16, 'color' => ['argb' => 'FF83218F']],
                 'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER],
             ],
-            // Baris 2 (Tanggal): Miring, Tengah
             2 => [
                 'font' => ['italic' => true, 'size' => 10],
                 'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER],
             ],
-            // Baris 4 (Header Kolom): Background Ungu, Teks Putih, Bold
-            4 => [
+            4 => [ 
                 'font' => ['bold' => true, 'color' => ['argb' => 'FFFFFFFF']],
                 'fill' => [
                     'fillType' => Fill::FILL_SOLID,
-                    'startColor' => ['argb' => 'FF83218F'], // Warna Ungu Kita
+                    'startColor' => ['argb' => 'FF83218F'], 
                 ],
                 'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER],
             ],
         ];
     }
 
-    // 5. EVENT LANJUTAN (Merge Cells & Border)
+    // 5. EVENT LANJUTAN (Border)
     public function registerEvents(): array
     {
         return [
             AfterSheet::class => function(AfterSheet $event) {
                 $sheet = $event->sheet;
                 
-                // A. Merge Cells untuk Judul (Dari Kolom A sampai I)
                 $sheet->mergeCells('A1:I1');
                 $sheet->mergeCells('A2:I2');
 
-                // B. Tambahkan Border ke Seluruh Data
-                // Hitung baris terakhir data
                 $highestRow = $sheet->getHighestRow(); 
-                $highestColumn = 'I'; // Kolom terakhir kita
+                $highestColumn = 'I'; 
 
-                // Terapkan border tipis hitam untuk range A4 sampai data terakhir
                 $sheet->getStyle('A4:' . $highestColumn . $highestRow)->applyFromArray([
                     'borders' => [
                         'allBorders' => [
@@ -116,8 +125,6 @@ class MembersExport implements FromCollection, WithHeadings, WithMapping, WithSt
                     ],
                 ]);
 
-                // C. Center Alignment untuk data tertentu (No, Tgl Lahir, Tgl Gabung)
-                // Kolom A (No), F (Tgl Lahir), I (Tgl Gabung)
                 $sheet->getStyle('A5:A' . $highestRow)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
                 $sheet->getStyle('F5:F' . $highestRow)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
                 $sheet->getStyle('I5:I' . $highestRow)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
