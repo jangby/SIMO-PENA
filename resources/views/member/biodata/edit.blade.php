@@ -136,21 +136,37 @@
 
     <script>
         function previewImage(event) {
-            var reader = new FileReader();
-            reader.onload = function(){
-                var output = document.getElementById('photo-preview');
-                var placeholder = document.getElementById('photo-placeholder');
-                var imgHidden = document.getElementById('photo-preview-img');
-                if(output) {
-                    output.src = reader.result;
-                } else if (placeholder && imgHidden) {
-                    placeholder.style.display = 'none';
-                    imgHidden.src = reader.result;
-                    imgHidden.classList.remove('hidden');
-                    imgHidden.id = 'photo-preview'; 
+            const input = event.target;
+            
+            if (input.files && input.files[0]) {
+                const file = input.files[0];
+                const fileSize = file.size / 1024 / 1024; // ukuran dalam MB
+
+                // UPDATE: Batas sekarang 10MB (Sesuai controller)
+                if (fileSize > 10) {
+                    // Gunakan alert biasa atau SweetAlert jika sudah dipasang
+                    alert('Ukuran file terlalu besar! Maksimal 10MB.');
+                    input.value = ''; // Reset input
+                    return;
                 }
-            };
-            reader.readAsDataURL(event.target.files[0]);
+
+                var reader = new FileReader();
+                reader.onload = function(){
+                    var output = document.getElementById('photo-preview');
+                    var placeholder = document.getElementById('photo-placeholder');
+                    var imgHidden = document.getElementById('photo-preview-img');
+
+                    if(output) {
+                        output.src = reader.result;
+                    } else if (placeholder && imgHidden) {
+                        placeholder.style.display = 'none';
+                        imgHidden.src = reader.result;
+                        imgHidden.classList.remove('hidden');
+                        imgHidden.id = 'photo-preview'; 
+                    }
+                };
+                reader.readAsDataURL(file);
+            }
         }
     </script>
 </x-app-layout>

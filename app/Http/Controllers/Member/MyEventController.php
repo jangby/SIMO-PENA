@@ -9,6 +9,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use SimpleSoftwareIO\QrCode\Facades\QrCode;
 use Picqer\Barcode\BarcodeGeneratorPNG;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 class MyEventController extends Controller
 {
@@ -69,5 +71,29 @@ class MyEventController extends Controller
         $barcodeBase64 = base64_encode($barcodeData);
 
         return view('member.my-events.id-card', compact('registration', 'barcodeBase64'));
+    }
+
+    public function downloadCertificate($id)
+    {
+        $registration = Registration::with('event')->findOrFail($id);
+
+        // Validasi Kepemilikan
+        if ($registration->phone != Auth::user()->profile->phone) {
+            abort(403, 'Akses Ditolak');
+        }
+
+        // Cek apakah file ada
+        if (!$registration->certificate_file || !Storage::disk('public')->exists($registration->certificate_file)) {
+            return back()->with('error', 'File sertifikat tidak ditemukan.');
+        }
+
+        // Buat Nama File Cantik untuk didownload user
+        // Contoh: Sertifikat - Makesta Raya - Ahmad.pdf
+        $cleanEventName = Str::slug($registration->event->title);
+        $cleanUserName = Str::slug($registration->name);
+        $downloadName = "Sertifikat-{$cleanEventName}-{$cleanUserName}.pdf";
+
+        // Perintah Download
+        return Storage::disk('public')->download($registration->certificate_file, $downloadName);
     }
 }

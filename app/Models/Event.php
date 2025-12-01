@@ -20,6 +20,7 @@ class Event extends Model
         'status',
         'price',
         'bank_accounts', // <--- Tambahkan ini
+        'certificate_link',
     ];
 
     protected $casts = [

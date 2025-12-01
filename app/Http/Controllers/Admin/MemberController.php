@@ -13,21 +13,34 @@ class MemberController extends Controller
 {
     public function index(Request $request)
     {
-        // Ambil filter grade dari URL (default tampilkan 'anggota')
-        // Opsi: 'anggota' atau 'kader'
+        // Ambil filter grade dari URL
         $grade = $request->query('grade', 'anggota'); 
 
-        $query = User::where('role', 'member')
-                     ->whereHas('profile', function($q) use ($grade) {
-                         $q->where('grade', $grade);
-                     })
-                     ->with('profile');
+        // Query Dasar
+        $query = User::where('role', 'member')->with('profile');
 
-        // Logika Pencarian (Search)
+        // --- FILTER LOGIC ---
+        if ($grade == 'sampah') {
+            // Khusus Tab Sampah: Tampilkan yang sudah dihapus (Soft Deleted)
+            $query->onlyTrashed();
+        } elseif ($grade == 'alumni') {
+            // Khusus Alumni
+            $query->whereHas('profile', function($q) {
+                $q->where('grade', 'alumni');
+            });
+        } else {
+            // Filter Biasa (Calon, Anggota, Kader)
+            $query->whereHas('profile', function($q) use ($grade) {
+                $q->where('grade', $grade);
+            });
+        }
+
+        // Logika Pencarian (Tetap Sama)
         if ($request->has('search')) {
             $search = $request->search;
             $query->where(function($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('email', 'like', "%{$search}%")
                   ->orWhereHas('profile', function($p) use ($search) {
                       $p->where('school_origin', 'like', "%{$search}%");
                   });
@@ -36,8 +49,46 @@ class MemberController extends Controller
 
         $members = $query->latest()->paginate(10);
         
-        // Kita kirim variabel $grade ke view untuk penanda tab aktif
         return view('admin.members.index', compact('members', 'grade'));
+    }
+
+    // --- FUNGSI BARU ---
+
+    // 1. Nonaktifkan (Banned)
+    public function deactivate(User $user)
+    {
+        $user->update(['is_active' => false]);
+        return back()->with('success', 'Akun dinonaktifkan. User tidak bisa login.');
+    }
+
+    // 2. Luluskan (Jadi Alumni)
+    public function graduate(User $user)
+    {
+        $user->profile()->update(['grade' => 'alumni']);
+        return back()->with('success', 'Anggota dinyatakan LULUS dan menjadi Alumni.');
+    }
+
+    // 3. Hapus Sementara (Soft Delete -> Masuk Tong Sampah)
+    public function destroy(User $user)
+    {
+        $user->delete(); // Ini tidak menghapus permanen, cuma mengisi deleted_at
+        return back()->with('success', 'Data dipindahkan ke Sampah.');
+    }
+
+    // 4. Restore (Kembalikan dari Sampah)
+    public function restore($id)
+    {
+        $user = User::onlyTrashed()->findOrFail($id);
+        $user->restore();
+        return back()->with('success', 'Data berhasil dipulihkan.');
+    }
+    
+    // 5. Hapus Permanen (Opsional, jika ingin benar-benar menghapus)
+    public function forceDelete($id)
+    {
+        $user = User::onlyTrashed()->findOrFail($id);
+        $user->forceDelete(); // Hilang selamanya
+        return back()->with('success', 'Data dihapus permanen.');
     }
 
     public function show(User $user)

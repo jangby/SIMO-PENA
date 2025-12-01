@@ -73,6 +73,7 @@ Route::middleware('auth')->group(function () {
     // Absensi
     Route::get('/absensi', [AttendanceController::class, 'index'])->name('member.attendance.index');
     Route::get('/absensi/{id}', [AttendanceController::class, 'show'])->name('member.attendance.show');
+    Route::get('/kegiatan-saya/{id}/sertifikat', [MyEventController::class, 'downloadCertificate'])->name('my-events.certificate.download');
 
 
 Route::post('/complete-tour', [TourController::class, 'complete'])->name('tour.complete');
@@ -119,6 +120,17 @@ Route::middleware(['auth', 'verified', 'admin'])->group(function () {
     Route::patch('/admin/events/{event}/update-status', [EventController::class, 'updateStatus'])->name('admin.events.status');
     Route::patch('/admin/members/{user}/activate', [MemberController::class, 'activate'])->name('admin.members.activate');
 
+    // Aksi Member
+    Route::patch('/admin/members/{user}/deactivate', [MemberController::class, 'deactivate'])->name('admin.members.deactivate');
+    Route::patch('/admin/members/{user}/graduate', [MemberController::class, 'graduate'])->name('admin.members.graduate');
+    
+    // Aksi Sampah (Restore & Force Delete)
+    Route::patch('/admin/members/{id}/restore', [MemberController::class, 'restore'])->name('admin.members.restore');
+    Route::delete('/admin/members/{id}/force-delete', [MemberController::class, 'forceDelete'])->name('admin.members.force_delete');
+    
+    // Route Resource yang lama (Pastikan destroy ada)
+    Route::delete('/admin/members/{user}', [MemberController::class, 'destroy'])->name('admin.members.destroy');
+
     // B. Resource Event
     Route::resource('/admin/events', EventController::class)->names([
         'index' => 'admin.events.index',
@@ -148,6 +160,10 @@ Route::middleware(['auth', 'verified', 'admin'])->group(function () {
         Route::post('/attendance/{registration}/checkin', [EventManagementController::class, 'checkIn'])->name('attendance.checkin');
         Route::post('/attendance/{registration}/cancel', [EventManagementController::class, 'cancelCheckIn'])->name('attendance.cancel');
         Route::post('/scan-qr', [EventManagementController::class, 'scanQr'])->name('attendance.scan');
+        Route::post('/certificate', [EventManagementController::class, 'uploadCertificate'])->name('certificate.upload');
+        // Route Kelola Sertifikat
+        Route::get('/certificates', [EventManagementController::class, 'certificates'])->name('certificates');
+        Route::post('/certificates/{registration}', [EventManagementController::class, 'storeCertificate'])->name('certificates.store');
     });
 });
 

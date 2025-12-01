@@ -196,4 +196,39 @@ public function printAllIdCards(Event $event)
         // 4. Download / Stream PDF
         return $pdf->stream('ID_Cards_' . $event->title . '.pdf');
     }
+
+    // --- HALAMAN KELOLA SERTIFIKAT (List Peserta) ---
+    public function certificates(Event $event)
+    {
+        // Hanya tampilkan peserta yang SUDAH HADIR (presence_at tidak null)
+        // Karena logikanya sertifikat hanya untuk yang hadir
+        $participants = $event->registrations()
+                        ->whereNotNull('presence_at') 
+                        ->latest()
+                        ->get();
+
+        return view('admin.events.certificates', compact('event', 'participants'));
+    }
+
+    // PERBAIKAN: Tambahkan (Event $event) sebelum Registration
+    public function storeCertificate(Request $request, Event $event, Registration $registration)
+    {
+        $request->validate([
+            'file' => 'required|mimes:pdf,jpg,jpeg,png|max:5120', // Max 5MB
+        ]);
+
+        // Hapus file lama jika ada
+        if ($registration->certificate_file) {
+            \Illuminate\Support\Facades\Storage::delete('public/' . $registration->certificate_file);
+        }
+
+        // Simpan File
+        $fileName = 'CERT_' . time() . '_' . $registration->id . '.' . $request->file->extension();
+        $path = $request->file('file')->storeAs('certificates', $fileName, 'public');
+
+        // Update Database
+        $registration->update(['certificate_file' => $path]);
+
+        return back()->with('success', 'Sertifikat untuk ' . $registration->name . ' berhasil diupload.');
+    }
 }

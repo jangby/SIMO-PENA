@@ -18,33 +18,32 @@
                 </div>
             @endif
 
-            <div class="flex flex-wrap gap-2 bg-white p-1.5 rounded-2xl w-fit mb-6 shadow-sm border border-gray-100">
+            <div class="flex flex-wrap gap-2 bg-white p-2 rounded-2xl w-full mb-6 shadow-sm border border-gray-100 overflow-x-auto">
                 
                 <a href="{{ route('admin.members.index', ['grade' => 'calon']) }}" 
-                   class="px-4 py-2.5 rounded-xl text-sm font-bold transition flex items-center gap-2 {{ $grade == 'calon' ? 'bg-[#83218F] text-white shadow-md' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900' }}">
-                   <div class="p-1 bg-white/20 rounded-full">
-                       <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2.25-4.125a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zM4 19.235v-.11a6.375 6.375 0 0112.75 0v.109A12.318 12.318 0 0110.374 21c-2.331 0-4.512-.645-6.374-1.766z"></path></svg>
-                   </div>
+                   class="px-4 py-2 rounded-xl text-sm font-bold transition flex items-center gap-2 whitespace-nowrap {{ $grade == 'calon' ? 'bg-[#83218F] text-white shadow-md' : 'text-gray-500 hover:bg-gray-50' }}">
                    Calon Anggota
-                   @if($grade == 'calon') <span class="ml-1 bg-white text-[#83218F] text-[10px] px-1.5 rounded-full">{{ $members->total() }}</span> @endif
+                   @if($grade == 'calon') <span class="bg-white text-[#83218F] text-[10px] px-1.5 rounded-full">{{ $members->total() }}</span> @endif
                 </a>
 
                 <a href="{{ route('admin.members.index', ['grade' => 'anggota']) }}" 
-                   class="px-4 py-2.5 rounded-xl text-sm font-bold transition flex items-center gap-2 {{ $grade == 'anggota' ? 'bg-[#83218F] text-white shadow-md' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900' }}">
-                   <div class="p-1 bg-white/20 rounded-full">
-                       <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
-                   </div>
+                   class="px-4 py-2 rounded-xl text-sm font-bold transition flex items-center gap-2 whitespace-nowrap {{ $grade == 'anggota' ? 'bg-[#83218F] text-white shadow-md' : 'text-gray-500 hover:bg-gray-50' }}">
                    Anggota (Makesta)
-                   @if($grade == 'anggota') <span class="ml-1 bg-white text-[#83218F] text-[10px] px-1.5 rounded-full">{{ $members->total() }}</span> @endif
                 </a>
 
                 <a href="{{ route('admin.members.index', ['grade' => 'kader']) }}" 
-                   class="px-4 py-2.5 rounded-xl text-sm font-bold transition flex items-center gap-2 {{ $grade == 'kader' ? 'bg-[#83218F] text-white shadow-md' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900' }}">
-                   <div class="p-1 bg-white/20 rounded-full">
-                       <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"></path></svg>
-                   </div>
+                   class="px-4 py-2 rounded-xl text-sm font-bold transition flex items-center gap-2 whitespace-nowrap {{ $grade == 'kader' ? 'bg-[#83218F] text-white shadow-md' : 'text-gray-500 hover:bg-gray-50' }}">
                    Kader (Lakmud)
-                   @if($grade == 'kader') <span class="ml-1 bg-white text-[#83218F] text-[10px] px-1.5 rounded-full">{{ $members->total() }}</span> @endif
+                </a>
+
+                <a href="{{ route('admin.members.index', ['grade' => 'alumni']) }}" 
+                   class="px-4 py-2 rounded-xl text-sm font-bold transition flex items-center gap-2 whitespace-nowrap {{ $grade == 'alumni' ? 'bg-blue-600 text-white shadow-md' : 'text-gray-500 hover:bg-gray-50' }}">
+                   Alumni
+                </a>
+
+                <a href="{{ route('admin.members.index', ['grade' => 'sampah']) }}" 
+                   class="px-4 py-2 rounded-xl text-sm font-bold transition flex items-center gap-2 whitespace-nowrap {{ $grade == 'sampah' ? 'bg-red-600 text-white shadow-md' : 'text-gray-500 hover:bg-red-50 hover:text-red-600' }}">
+                   Sampah
                 </a>
             </div>
             
@@ -76,16 +75,17 @@
                         <table class="min-w-full text-sm text-left text-gray-500">
                             <thead class="bg-[#83218F] text-white uppercase text-xs font-bold">
                                 <tr>
-                                    <th class="px-6 py-4 rounded-tl-xl">Profil Anggota</th>
-                                    <th class="px-6 py-4">Asal Sekolah</th>
-                                    <th class="px-6 py-4">Kontak (WA)</th>
-                                    <th class="px-6 py-4 text-center">Kelengkapan Data</th>
+                                    <th class="px-6 py-4 rounded-tl-xl">Profil</th>
+                                    <th class="px-6 py-4">Identitas</th>
+                                    <th class="px-6 py-4">Kontak</th>
+                                    <th class="px-6 py-4 text-center">Status</th>
                                     <th class="px-6 py-4 text-center rounded-tr-xl">Aksi</th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-gray-100">
                                 @forelse ($members as $member)
                                 <tr class="hover:bg-purple-50 transition group">
+                                    
                                     <td class="px-6 py-4">
                                         <div class="flex items-center">
                                             <div class="h-10 w-10 rounded-full bg-purple-100 flex items-center justify-center text-[#83218F] font-bold uppercase mr-3 border-2 border-white shadow-sm overflow-hidden">
@@ -103,7 +103,8 @@
                                     </td>
 
                                     <td class="px-6 py-4">
-                                        <span class="text-gray-700 font-medium">{{ $member->profile->school_origin ?? '-' }}</span>
+                                        <span class="block text-gray-800 font-bold text-xs">{{ $member->profile->school_origin ?? '-' }}</span>
+                                        <span class="text-[10px] text-gray-500">NIA: {{ $member->profile->nia_ipnu ?? 'Belum ada' }}</span>
                                     </td>
 
                                     <td class="px-6 py-4">
@@ -113,37 +114,78 @@
                                                 {{ $member->profile->phone }}
                                             </a>
                                         @else
-                                            <span class="text-gray-300 text-xs italic">Tidak ada</span>
+                                            <span class="text-gray-300 text-xs italic">No Phone</span>
                                         @endif
                                     </td>
 
                                     <td class="px-6 py-4 text-center">
-                                        @if($member->profile && $member->profile->nia_ipnu)
-                                            <span class="bg-green-100 text-green-700 text-[10px] font-bold px-2 py-1 rounded-full border border-green-200">TERVERIFIKASI</span>
-                                        @elseif($member->profile)
-                                            <span class="bg-blue-100 text-blue-700 text-[10px] font-bold px-2 py-1 rounded-full border border-blue-200">DATA LENGKAP</span>
+                                        @if($member->is_active)
+                                            <span class="inline-flex items-center gap-1 bg-green-100 text-green-700 text-[10px] font-bold px-2 py-1 rounded-full">
+                                                <span class="w-1.5 h-1.5 bg-green-500 rounded-full"></span> Aktif
+                                            </span>
                                         @else
-                                            <span class="bg-red-100 text-red-700 text-[10px] font-bold px-2 py-1 rounded-full border border-red-200">BELUM LENGKAP</span>
+                                            <span class="inline-flex items-center gap-1 bg-red-100 text-red-700 text-[10px] font-bold px-2 py-1 rounded-full">
+                                                <span class="w-1.5 h-1.5 bg-red-500 rounded-full"></span> Nonaktif
+                                            </span>
                                         @endif
                                     </td>
 
                                     <td class="px-6 py-4 text-center">
                                         <div class="flex justify-center items-center gap-2">
                                             
-                                            @if(!$member->is_active)
-                                                <form action="{{ route('admin.members.activate', $member->id) }}" method="POST">
+                                            @if($grade == 'sampah')
+                                                <form action="{{ route('admin.members.restore', $member->id) }}" method="POST">
                                                     @csrf @method('PATCH')
-                                                    <button type="submit" class="bg-green-500 hover:bg-green-600 text-white text-[10px] font-bold px-3 py-1.5 rounded-lg shadow-sm flex items-center gap-1 transition" onclick="return confirm('Aktifkan akun {{ $member->name }}?')">
-                                                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
-                                                        Aktifkan
+                                                    <button type="submit" class="bg-green-100 text-green-700 p-2 rounded-lg hover:bg-green-200 transition" title="Pulihkan">
+                                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                                                    </button>
+                                                </form>
+                                                <form action="{{ route('admin.members.force_delete', $member->id) }}" method="POST" onsubmit="return confirm('Hapus PERMANEN? Data tidak bisa kembali!')">
+                                                    @csrf @method('DELETE')
+                                                    <button type="submit" class="bg-red-100 text-red-600 p-2 rounded-lg hover:bg-red-200 transition" title="Hapus Permanen">
+                                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                                                    </button>
+                                                </form>
+                                            
+                                            @else
+                                                @if(!$member->is_active)
+                                                    <form action="{{ route('admin.members.activate', $member->id) }}" method="POST">
+                                                        @csrf @method('PATCH')
+                                                        <button type="submit" class="bg-green-600 text-white text-[10px] font-bold px-3 py-1.5 rounded-lg shadow hover:bg-green-700 transition" onclick="return confirm('Aktifkan akun ini?')">
+                                                            Aktifkan
+                                                        </button>
+                                                    </form>
+                                                @endif
+
+                                                @if($member->is_active)
+                                                    <form action="{{ route('admin.members.deactivate', $member->id) }}" method="POST" onsubmit="return confirm('Nonaktifkan (Ban) akun ini?')">
+                                                        @csrf @method('PATCH')
+                                                        <button type="submit" class="bg-yellow-50 text-yellow-600 p-2 rounded-lg hover:bg-yellow-100 transition" title="Nonaktifkan">
+                                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"></path></svg>
+                                                        </button>
+                                                    </form>
+                                                @endif
+
+                                                <a href="{{ route('admin.members.show', $member->id) }}" class="bg-white border border-gray-200 text-gray-600 p-2 rounded-lg hover:border-[#83218F] hover:text-[#83218F] transition" title="Detail">
+                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
+                                                </a>
+
+                                                @if($grade != 'alumni' && $grade != 'calon')
+                                                    <form action="{{ route('admin.members.graduate', $member->id) }}" method="POST" onsubmit="return confirm('Nyatakan anggota ini LULUS?')">
+                                                        @csrf @method('PATCH')
+                                                        <button type="submit" class="bg-blue-50 text-blue-600 p-2 rounded-lg hover:bg-blue-100 transition" title="Jadikan Alumni">
+                                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l9-5-9-5-9 5 9 5z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z"></path></svg>
+                                                        </button>
+                                                    </form>
+                                                @endif
+
+                                                <form action="{{ route('admin.members.destroy', $member->id) }}" method="POST" onsubmit="return confirm('Pindahkan ke Sampah?')">
+                                                    @csrf @method('DELETE')
+                                                    <button type="submit" class="bg-red-50 text-red-600 p-2 rounded-lg hover:bg-red-100 transition" title="Hapus Sementara">
+                                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
                                                     </button>
                                                 </form>
                                             @endif
-
-                                            <a href="{{ route('admin.members.show', $member->id) }}" class="inline-flex items-center gap-1 bg-white border border-gray-200 text-gray-600 hover:text-[#83218F] hover:border-[#83218F] font-bold text-[10px] px-3 py-1.5 rounded-lg transition shadow-sm">
-                                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
-                                                Detail
-                                            </a>
                                         </div>
                                     </td>
                                 </tr>
@@ -154,10 +196,7 @@
                                             <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-3">
                                                 <svg class="w-8 h-8 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
                                             </div>
-                                            <p class="font-medium text-sm">Belum ada data {{ $grade }} ditemukan.</p>
-                                            @if(request('search'))
-                                                <p class="text-xs mt-1">Coba kata kunci lain.</p>
-                                            @endif
+                                            <p class="font-medium text-sm">Belum ada data {{ ucfirst($grade) }} ditemukan.</p>
                                         </div>
                                     </td>
                                 </tr>

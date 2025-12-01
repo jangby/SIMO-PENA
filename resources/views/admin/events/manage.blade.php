@@ -99,7 +99,7 @@
 
             <hr class="border-gray-200">
 
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
                 
                 <div class="bg-white rounded-2xl shadow-sm p-6 hover:shadow-lg transition duration-300 border border-gray-100 group h-full flex flex-col">
                     <div class="flex items-center mb-4">
@@ -150,6 +150,21 @@
                         </span>
                     </div>
                 </a>
+
+                <div class="bg-white rounded-2xl shadow-sm p-6 hover:shadow-lg transition duration-300 border border-gray-100 h-full flex flex-col group">
+                    <div class="flex items-center mb-4">
+                        <div class="bg-green-50 p-3 rounded-xl text-green-600 mr-4 group-hover:bg-green-600 group-hover:text-white transition">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                        </div>
+                        <h3 class="font-bold text-lg text-gray-800">E-Sertifikat</h3>
+                    </div>
+                    
+                    <p class="text-gray-500 text-sm mb-6 flex-1">Upload sertifikat personal untuk setiap peserta yang hadir.</p>
+                    
+                    <a href="{{ route('admin.events.certificates', $event->id) }}" class="w-full block text-center bg-green-50 text-green-700 py-2 rounded-lg text-sm font-bold group-hover:bg-green-600 group-hover:text-white transition">
+                        Kelola Sertifikat &rarr;
+                    </a>
+                </div>
 
             </div>
 
