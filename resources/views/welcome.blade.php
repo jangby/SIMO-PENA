@@ -41,7 +41,7 @@
                 <div class="flex items-center gap-3">
                     <img src="{{ asset('logo/logopena.jpg') }}" class="h-9 w-9 object-contain drop-shadow-sm">
                     <div class="leading-tight">
-                        <h1 class="font-bold text-[#83218F] text-base md:text-lg tracking-tight">Pena</h1>
+                        <h1 class="font-bold text-[#83218F] text-base md:text-lg tracking-tight">Pena IPNU</h1>
                         <p class="text-gray-400 text-[10px] md:text-xs font-medium tracking-widest uppercase">Limbangan</p>
                     </div>
                 </div>
@@ -52,15 +52,18 @@
                     <a href="#event-list" class="text-sm font-medium text-gray-600 hover:text-[#83218F] transition">Kegiatan</a>
                 </div>
 
-                <div class="flex items-center gap-3">
+                <div class="flex items-center gap-2 md:gap-3">
                     @if (Route::has('login'))
                         @auth
                             <a href="{{ url('/dashboard') }}" class="bg-[#83218F] text-white px-5 py-2 rounded-full font-bold text-xs md:text-sm shadow-lg shadow-purple-200 transition transform hover:-translate-y-0.5">
                                 Dashboard
                             </a>
                         @else
-                            <a href="{{ route('login') }}" class="text-gray-500 font-bold text-xs md:text-sm px-3 hover:text-[#83218F] transition hidden sm:block">Masuk</a>
-                            <a href="{{ route('register') }}" class="bg-[#83218F] text-white px-5 py-2 rounded-full font-bold text-xs md:text-sm shadow-lg shadow-purple-200 transition transform hover:-translate-y-0.5 hover:bg-purple-800">
+                            <a href="{{ route('login') }}" class="text-gray-500 font-bold text-xs md:text-sm px-2 md:px-3 hover:text-[#83218F] transition">
+                                Masuk
+                            </a>
+                            
+                            <a href="{{ route('register') }}" class="bg-[#83218F] text-white px-4 md:px-5 py-2 rounded-full font-bold text-xs md:text-sm shadow-lg shadow-purple-200 transition transform hover:-translate-y-0.5 hover:bg-purple-800">
                                 Daftar
                             </a>
                         @endauth
