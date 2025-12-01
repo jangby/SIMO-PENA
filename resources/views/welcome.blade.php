@@ -41,7 +41,7 @@
                 <div class="flex items-center gap-3">
                     <img src="{{ asset('logo/logopena.jpg') }}" class="h-9 w-9 object-contain drop-shadow-sm">
                     <div class="leading-tight">
-                        <h1 class="font-bold text-[#83218F] text-base md:text-lg tracking-tight">Pena IPNU</h1>
+                        <h1 class="font-bold text-[#83218F] text-base md:text-lg tracking-tight">Pena</h1>
                         <p class="text-gray-400 text-[10px] md:text-xs font-medium tracking-widest uppercase">Limbangan</p>
                     </div>
                 </div>
