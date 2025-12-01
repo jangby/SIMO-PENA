@@ -14,7 +14,7 @@ class WahaService
     public function __construct()
     {
         $this->baseUrl = env('WAHA_BASE_URL', 'http://72.61.208.130:3000');
-        $this->apiKey = env('WAHA_API_KEY', '');
+        $this->apiKey = env('WAHA_API_KEY', '0f0eb5d196b6459781f7d854aac5050e');
         $this->session = env('WAHA_SESSION', 'default');
     }
 

@@ -108,6 +108,7 @@ Route::middleware(['auth', 'verified', 'admin'])->group(function () {
     // A. Custom Routes Event (Harus di luar prefix group '{event}')
     Route::get('/admin/events/{event}/manage', [EventController::class, 'manage'])->name('admin.events.manage');
     Route::patch('/admin/events/{event}/update-status', [EventController::class, 'updateStatus'])->name('admin.events.status');
+    Route::patch('/admin/members/{user}/activate', [MemberController::class, 'activate'])->name('admin.members.activate');
 
     // B. Resource Event
     Route::resource('/admin/events', EventController::class)->names([

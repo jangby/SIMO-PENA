@@ -33,18 +33,27 @@ class RegisteredUserController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class],
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
+            'phone' => ['required', 'numeric'], // Validasi No WA
         ]);
 
         $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
+            'role' => 'member',
+            'is_active' => false, // <--- Set Default Nonaktif
         ]);
 
-        event(new Registered($user));
+        // Buat Profile dengan Grade 'Calon' dan simpan No WA
+        $user->profile()->create([
+            'phone' => $request->phone,
+            'grade' => 'calon',
+        ]);
 
-        Auth::login($user);
+        // Jangan login otomatis!
+        // Auth::login($user); 
 
-        return redirect(route('dashboard', absolute: false));
+        // Redirect ke halaman info
+        return redirect()->route('login')->with('status', 'Pendaftaran berhasil! Akun Anda sedang diverifikasi admin. Notifikasi akan dikirim via WhatsApp.');
     }
 }

@@ -41,11 +41,22 @@ class LoginRequest extends FormRequest
     {
         $this->ensureIsNotRateLimited();
 
+        // Cek Kredensial dulu
         if (! Auth::attempt($this->only('email', 'password'), $this->boolean('remember'))) {
             RateLimiter::hit($this->throttleKey());
 
             throw ValidationException::withMessages([
                 'email' => trans('auth.failed'),
+            ]);
+        }
+
+        // --- CEK STATUS AKTIF ---
+        $user = Auth::user();
+        if ($user->role !== 'admin' && !$user->is_active) {
+            Auth::logout(); // Tendang keluar
+            
+            throw ValidationException::withMessages([
+                'email' => 'Akun belum diaktifkan oleh Admin. Harap tunggu verifikasi.',
             ]);
         }
 

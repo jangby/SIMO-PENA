@@ -45,6 +45,8 @@ class RegistrationApprovalController extends Controller
             $user = $existingProfile->user;
             $isNewAccount = false;
 
+            $user->update(['is_active' => true]); // <--- Tambahkan ini
+
             // Update Grade Saja (Naik Tingkat)
             // Jika dia daftar Lakmud, naik jadi Kader. Jika Makesta, tetap Anggota.
             $newGrade = $user->profile->grade; // Default grade lama
@@ -79,6 +81,7 @@ class RegistrationApprovalController extends Controller
                 'email' => $email,
                 'password' => Hash::make($password),
                 'role' => 'member',
+                'is_active' => true,
             ]);
 
             // Tentukan Grade Awal

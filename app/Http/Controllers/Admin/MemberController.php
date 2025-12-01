@@ -7,6 +7,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use App\Exports\MembersExport;
 use Maatwebsite\Excel\Facades\Excel;
+use App\Services\WahaService;
 
 class MemberController extends Controller
 {
@@ -49,4 +50,27 @@ class MemberController extends Controller
     {
         return Excel::download(new MembersExport, 'data-anggota-ipnu.xlsx');
     }
+
+    public function activate(User $user, WahaService $waha)
+{
+    // Aktifkan User
+    $user->update(['is_active' => true]);
+
+    // Ubah grade jadi Anggota (jika masih calon)
+    // Atau biarkan calon dulu sampai ikut makesta? Terserah kebijakan.
+    // Disini kita biarkan grade sesuai data, cuma aktifkan loginnya.
+
+    // Kirim WA Notifikasi
+    if ($user->profile && $user->profile->phone) {
+        $message = "*AKUN DIAKTIFKAN* ✅\n\n"
+                 . "Halo rekan/ita *{$user->name}*,\n"
+                 . "Akun Anda di Portal PAC IPNU Limbangan telah diverifikasi dan DIAKTIFKAN oleh Admin.\n\n"
+                 . "Sekarang Anda sudah bisa login untuk mendaftar kegiatan atau melengkapi biodata.\n"
+                 . "Link Login: " . route('login');
+
+        $waha->sendText($user->profile->phone, $message);
+    }
+
+    return back()->with('success', 'Akun berhasil diaktifkan & notifikasi terkirim.');
+}
 }
