@@ -101,7 +101,12 @@ Route::middleware(['auth', 'verified', 'admin'])->group(function () {
     Route::resource('/admin/letters', LetterController::class)->names('admin.letters');
     Route::resource('/admin/structures', StructureController::class)->names('admin.structures');
     Route::resource('/admin/socials', SocialMediaController::class)->only(['index', 'store', 'destroy'])->names('admin.socials');
+    
+    // Route Keuangan Lengkap
     Route::get('/admin/finances', [FinanceController::class, 'index'])->name('admin.finances.index');
+    Route::post('/admin/finances', [FinanceController::class, 'store'])->name('admin.finances.store'); // Simpan
+    Route::get('/admin/finances/export', [FinanceController::class, 'export'])->name('admin.finances.export'); // Export
+    Route::delete('/admin/finances/{finance}', [FinanceController::class, 'destroy'])->name('admin.finances.destroy'); // Hapus
 
     // 4. MANAJEMEN EVENT (Complex Routes)
     
