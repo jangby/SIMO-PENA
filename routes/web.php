@@ -83,11 +83,12 @@ Route::resource('/admin/galleries', GalleryController::class)->names('admin.gall
 Route::resource('/admin/letters', LetterController::class)->names('admin.letters');
 Route::resource('/admin/structures', StructureController::class)->names('admin.structures');
 Route::resource('/admin/socials', SocialMediaController::class)->only(['index', 'store', 'destroy'])->names('admin.socials');
+Route::get('/admin/finances', [App\Http\Controllers\Admin\FinanceController::class, 'index'])->name('admin.finances.index');
 
 // Resource Route otomatis membuat route index, create, store, destroy, dll
     Route::get('/admin/events/{event}/manage', [EventController::class, 'manage'])->name('admin.events.manage');
     //Route::patch('/{event}/update-status', [EventController::class, 'updateStatus'])->name('admin.events.status');
-
+    Route::patch('/admin/events/{event}/update-status', [EventController::class, 'updateStatus'])->name('admin.events.status');
     // Route Resource (CRUD)
     Route::resource('/admin/events', EventController::class)->names([
         'index' => 'admin.events.index',

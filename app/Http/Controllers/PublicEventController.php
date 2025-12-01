@@ -70,19 +70,20 @@ class PublicEventController extends Controller
     // --- 4. PROSES SIMPAN PENDAFTARAN ---
     public function store(Request $request, Event $event)
     {
-        // A. Validasi Input
+        // Cek apakah event berbayar?
+        $isPaid = $event->price > 0;
+
         $request->validate([
             'name' => 'required|string|max:255',
-            'birth_place' => 'required|string|max:100', // Tempat Lahir
-            'birth_date' => 'required|date',             // Tanggal Lahir
+            'birth_place' => 'required|string|max:100',
+            'birth_date' => 'required|date',
             'phone' => 'required|numeric',
             'school_origin' => 'required|string|max:255',
             'address' => 'required|string',
             
-            // Validasi File: Wajib Gambar/PDF max 2MB
-            'payment_proof' => 'required|image|max:2048', 
+            // Validasi Kondisional: Wajib upload jika berbayar
+            'payment_proof' => $isPaid ? 'required|image|max:2048' : 'nullable', 
             
-            // Sertifikat hanya wajib jika event tipe 'lakmud'
             'certificate_file' => $event->type == 'lakmud' ? 'required|image|mimes:jpeg,png,jpg,pdf|max:2048' : 'nullable',
         ]);
 

@@ -98,6 +98,44 @@
                                 </div>
                                 <p class="text-[10px] text-gray-400 mt-1">Isi 0 jika gratis.</p>
                             </div>
+
+                            <div class="mb-4">
+                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">Biaya Pendaftaran</label>
+                                <div class="relative">
+                                    <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-500 font-bold">Rp</div>
+                                    <input type="number" name="price" class="w-full pl-10 border-gray-200 rounded-xl px-4 py-3 focus:ring-[#83218F] focus:border-[#83218F]" placeholder="0" value="{{ old('price', 0) }}">
+                                </div>
+                            </div>
+
+                            <div class="mb-4" x-data="{ 
+                                accounts: [{ bank: '', number: '', name: '' }] 
+                            }">
+                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-2 flex justify-between items-center">
+                                    Rekening Pembayaran
+                                    <button type="button" @click="accounts.push({ bank: '', number: '', name: '' })" class="text-[#83218F] hover:underline text-[10px] flex items-center gap-1">
+                                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                                        Tambah Bank
+                                    </button>
+                                </label>
+
+                                <div class="space-y-3">
+                                    <template x-for="(account, index) in accounts" :key="index">
+                                        <div class="p-3 bg-gray-50 border border-gray-200 rounded-xl space-y-2 relative group">
+                                            
+                                            <button type="button" @click="accounts.splice(index, 1)" class="absolute top-2 right-2 text-gray-400 hover:text-red-500" x-show="accounts.length > 1">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                                            </button>
+
+                                            <input type="text" :name="`bank_accounts[${index}][bank]`" x-model="account.bank" placeholder="Nama Bank / E-Wallet (Contoh: BRI / DANA)" class="w-full border-gray-200 rounded-lg text-xs px-3 py-2 focus:ring-[#83218F] focus:border-[#83218F]">
+                                            
+                                            <input type="number" :name="`bank_accounts[${index}][number]`" x-model="account.number" placeholder="Nomor Rekening" class="w-full border-gray-200 rounded-lg text-xs px-3 py-2 focus:ring-[#83218F] focus:border-[#83218F]">
+                                            
+                                            <input type="text" :name="`bank_accounts[${index}][name]`" x-model="account.name" placeholder="Atas Nama (Pemilik)" class="w-full border-gray-200 rounded-lg text-xs px-3 py-2 focus:ring-[#83218F] focus:border-[#83218F]">
+                                        </div>
+                                    </template>
+                                </div>
+                                <p class="text-[10px] text-gray-400 mt-2 italic">Klik "Tambah Bank" jika ada lebih dari satu tujuan transfer.</p>
+                            </div>
                         </div>
 
                         <div class="flex flex-col gap-3">

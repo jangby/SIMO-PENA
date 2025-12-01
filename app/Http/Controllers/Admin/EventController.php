@@ -43,6 +43,10 @@ class EventController extends Controller
             'type' => 'required|in:makesta,lakmud,rapat,lainnya',
             'banner' => 'nullable|image|max:2048', // Max 2MB
             'price' => 'nullable|numeric',
+            'bank_accounts' => 'nullable|array',
+            'bank_accounts.*.bank' => 'required_with:bank_accounts|string',
+            'bank_accounts.*.number' => 'required_with:bank_accounts|numeric',
+            'bank_accounts.*.name' => 'required_with:bank_accounts|string',
         ]);
 
         $data = $request->all();

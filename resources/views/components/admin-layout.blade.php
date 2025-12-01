@@ -114,6 +114,13 @@
                     <span class="ml-3 font-semibold text-sm whitespace-nowrap" x-show="sidebarOpen">Event & Acara</span>
                 </a>
 
+                <a href="{{ route('admin.finances.index') }}" 
+                   class="group flex items-center px-4 py-3 rounded-2xl transition-all duration-300 relative overflow-hidden mb-1
+                   {{ request()->routeIs('admin.finances.*') ? 'bg-white/25 text-white shadow-lg border border-white/20 backdrop-blur-md' : 'text-purple-100 hover:bg-white/10 hover:text-white' }}">
+                    <svg class="w-5 h-5 flex-shrink-0 transition-transform duration-300 group-hover:scale-110" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    <span class="ml-3 font-semibold text-sm whitespace-nowrap" x-show="sidebarOpen">Laporan Keuangan</span>
+                </a>
+
 
                 <div x-show="sidebarOpen" class="px-4 mb-2 mt-6">
                      <p class="text-[10px] font-black text-purple-200/60 uppercase tracking-widest">Konten & Publikasi</p>

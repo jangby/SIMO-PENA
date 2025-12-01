@@ -9,6 +9,7 @@ use App\Services\WahaService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
+use App\Models\Finance;
 
 class RegistrationApprovalController extends Controller
 {
@@ -61,7 +62,20 @@ class RegistrationApprovalController extends Controller
         ]);
 
         // 4. Update Status Pendaftaran
+        // 4. Update Status Pendaftaran
         $registration->update(['status' => 'approved']);
+
+        // --- NEW: CATAT KE KEUANGAN OTOMATIS ---
+        // Jika event berbayar, catat sebagai Pemasukan
+        if ($registration->event->price > 0) {
+            Finance::create([
+                'type' => 'income', // Pemasukan
+                'amount' => $registration->event->price,
+                'description' => "Pendaftaran Event: {$registration->event->title} a.n {$registration->name}",
+                'date' => now(),
+                'event_id' => $registration->event->id,
+            ]);
+        }
 
         // 5. Kirim WA Notifikasi
         $pesanWA = "*PENDAFTARAN DITERIMA!* ✅\n\n"

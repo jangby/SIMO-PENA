@@ -15,16 +15,17 @@ class Event extends Model
         'location',
         'start_time',
         'end_time',
-        'banner',      // Path foto banner
-        'type',        // makesta, lakmud, rapat, lainnya
-        'status',      // open, closed, draft
+        'banner',
+        'type',
+        'status',
         'price',
+        'bank_accounts', // <--- Tambahkan ini
     ];
 
-    // Casting agar otomatis jadi format tanggal Carbon
     protected $casts = [
         'start_time' => 'datetime',
         'end_time' => 'datetime',
+        'bank_accounts' => 'array', // <--- PENTING: Cast ke array
     ];
 
     // Relasi: Event punya banyak pendaftar

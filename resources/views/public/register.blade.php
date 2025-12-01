@@ -26,6 +26,22 @@
                 {{ $event->type }}
             </span>
             <h2 class="text-2xl font-extrabold leading-tight mb-2">{{ $event->title }}</h2>
+            
+            <div class="mt-4 mb-4">
+                @if($event->price > 0)
+                    <div class="inline-flex flex-col items-center bg-white/10 backdrop-blur-md rounded-xl p-3 border border-yellow-400/50 shadow-lg">
+                        <span class="text-[10px] text-yellow-200 uppercase tracking-widest font-bold">Biaya Pendaftaran</span>
+                        <span class="text-2xl font-black text-yellow-400">
+                            Rp {{ number_format($event->price, 0, ',', '.') }}
+                        </span>
+                    </div>
+                @else
+                    <span class="inline-block px-4 py-2 bg-green-500/20 text-green-300 font-bold rounded-lg border border-green-400/30">
+                        GRATIS (FREE)
+                    </span>
+                @endif
+            </div>
+
             <div class="flex justify-center items-center gap-4 text-purple-200 text-xs">
                 <span class="flex items-center"><svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg> {{ $event->start_time->format('d M Y') }}</span>
                 <span class="flex items-center"><svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg> {{ Str::limit($event->location, 15) }}</span>
@@ -85,19 +101,46 @@
 
                     <div class="border-t border-gray-100 my-4"></div>
 
+                    @if($event->price > 0)
                     <div class="bg-purple-50 rounded-2xl p-4 border border-purple-100">
-                        <label class="block text-xs font-bold text-[#83218F] uppercase tracking-wide mb-2">Bukti Pembayaran</label>
+                        <label class="block text-xs font-bold text-[#83218F] uppercase tracking-wide mb-2">
+                            Transfer Pembayaran (Rp {{ number_format($event->price, 0, ',', '.') }})
+                        </label>
                         
+                        <div class="space-y-2 mb-4">
+                            @if(!empty($event->bank_accounts))
+                                @foreach($event->bank_accounts as $bank)
+                                <div class="flex items-center justify-between bg-white p-3 rounded-xl border border-purple-100 shadow-sm">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-10 h-10 bg-purple-100 text-[#83218F] rounded-lg flex items-center justify-center font-bold text-xs uppercase">
+                                            {{ substr($bank['bank'], 0, 4) }}
+                                        </div>
+                                        <div>
+                                            <p class="text-xs font-bold text-gray-700 uppercase">{{ $bank['bank'] }}</p>
+                                            <p class="text-sm font-black text-gray-900 tracking-wide">{{ $bank['number'] }}</p>
+                                            <p class="text-[10px] text-gray-500">a.n {{ $bank['name'] }}</p>
+                                        </div>
+                                    </div>
+                                    <button type="button" onclick="navigator.clipboard.writeText('{{ $bank['number'] }}'); alert('No Rekening Disalin!')" class="text-gray-400 hover:text-[#83218F]">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+                                    </button>
+                                </div>
+                                @endforeach
+                            @else
+                                <p class="text-xs text-red-500 italic">Belum ada info rekening. Hubungi panitia.</p>
+                            @endif
+                        </div>
+
                         <div class="relative">
-                            <input type="file" name="payment_proof" id="payment_proof" class="hidden" accept="image/*" onchange="showFileName('payment_proof', 'payment-label')">
+                            <input type="file" name="payment_proof" id="payment_proof" class="hidden" accept="image/*" onchange="showFileName('payment_proof', 'payment-label')" required>
                             <label for="payment_proof" class="flex flex-col items-center justify-center w-full h-24 border-2 border-dashed border-[#83218F]/30 rounded-xl cursor-pointer hover:bg-white transition" id="payment-label">
                                 <svg class="w-8 h-8 text-[#83218F]/50 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
-                                <span class="text-xs text-gray-500 font-medium">Upload Struk / Bukti TF</span>
+                                <span class="text-xs text-gray-500 font-medium">Upload Bukti Transfer</span>
                             </label>
                         </div>
-                        <p class="text-[10px] text-gray-500 mt-2 text-center">Transfer ke BRI: 1234-5678-90 a.n IPNU</p>
                         @error('payment_proof') <span class="text-red-500 text-xs ml-1">{{ $message }}</span> @enderror
                     </div>
+                    @endif
 
                     @if($event->type == 'lakmud')
                     <div class="bg-yellow-50 rounded-2xl p-4 border border-yellow-200">
