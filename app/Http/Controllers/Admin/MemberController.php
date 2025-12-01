@@ -12,25 +12,31 @@ class MemberController extends Controller
 {
     public function index(Request $request)
     {
-        $query = User::where('role', 'member')->with('profile');
+        // Ambil filter grade dari URL (default tampilkan 'anggota')
+        // Opsi: 'anggota' atau 'kader'
+        $grade = $request->query('grade', 'anggota'); 
 
-        // LOGIKA PENCARIAN
+        $query = User::where('role', 'member')
+                     ->whereHas('profile', function($q) use ($grade) {
+                         $q->where('grade', $grade);
+                     })
+                     ->with('profile');
+
+        // Logika Pencarian (Search)
         if ($request->has('search')) {
             $search = $request->search;
             $query->where(function($q) use ($search) {
-                // Cari berdasarkan Nama atau Email
                 $q->where('name', 'like', "%{$search}%")
-                  ->orWhere('email', 'like', "%{$search}%")
-                  // Atau Cari berdasarkan Asal Sekolah (Relasi Profile)
-                  ->orWhereHas('profile', function($qProfile) use ($search) {
-                      $qProfile->where('school_origin', 'like', "%{$search}%");
+                  ->orWhereHas('profile', function($p) use ($search) {
+                      $p->where('school_origin', 'like', "%{$search}%");
                   });
             });
         }
 
         $members = $query->latest()->paginate(10);
         
-        return view('admin.members.index', compact('members'));
+        // Kita kirim variabel $grade ke view untuk penanda tab aktif
+        return view('admin.members.index', compact('members', 'grade'));
     }
 
     public function show(User $user)

@@ -119,7 +119,7 @@
                                 </div>
                                 <div>
                                     <h3 class="text-[#83218F] font-black text-2xl md:text-3xl">{{ \App\Models\User::where('role', 'member')->count() }}</h3>
-                                    <p class="text-gray-400 text-[10px] uppercase font-bold tracking-widest mt-1">Total Kader</p>
+                                    <p class="text-gray-400 text-[10px] uppercase font-bold tracking-widest mt-1">Total Anggota</p>
                                 </div>
                             </div>
 
