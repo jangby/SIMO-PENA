@@ -9,6 +9,10 @@ use App\Models\Registration;
 use Illuminate\Http\Request;
 use App\Exports\EventParticipantsExport;
 use Maatwebsite\Excel\Facades\Excel;
+use Barryvdh\DomPDF\Facade\Pdf;
+use Picqer\Barcode\BarcodeGeneratorPNG;
+use App\Models\User;    
+use App\Models\Profile;
 
 class EventManagementController extends Controller
 {
@@ -129,4 +133,44 @@ class EventManagementController extends Controller
 {
     return Excel::download(new EventParticipantsExport($event->id), 'peserta-'.$event->id.'.xlsx');
 }
+
+public function printAllIdCards(Event $event)
+    {
+        // 1. Ambil semua peserta yang APPROVED
+        $participants = $event->registrations()
+                        ->with('event') // Eager load event
+                        ->where('status', 'approved')
+                        ->get();
+
+        if ($participants->isEmpty()) {
+            return back()->with('error', 'Belum ada peserta yang disetujui.');
+        }
+
+        // 2. Generate Barcode untuk setiap peserta (Looping di Controller biar View bersih)
+        $generator = new BarcodeGeneratorPNG();
+        foreach ($participants as $p) {
+            // Simpan barcode base64 sementara di objek peserta
+            $p->barcode = base64_encode($generator->getBarcode($p->id, $generator::TYPE_CODE_128));
+            
+            // Ambil foto profil (Path absolut agar terbaca DOMPDF)
+            // Jika pakai storage link, gunakan public_path()
+            $user = User::where('email', $p->email)->first(); // Cari user terkait (jika ada relasi langsung lebih baik)
+            // NOTE: Di sistem kita relasi registration ke user agak loose (by phone/email).
+            // Sebaiknya kita cari user berdasarkan no HP yang sama
+            $userProfile = \App\Models\Profile::where('phone', $p->phone)->first();
+            
+            if ($userProfile && $userProfile->photo) {
+                $p->photo_path = public_path('storage/' . $userProfile->photo);
+            } else {
+                $p->photo_path = null; // Nanti pakai placeholder
+            }
+        }
+
+        // 3. Load View PDF
+        $pdf = Pdf::loadView('admin.events.pdf_idcards', compact('event', 'participants'))
+                  ->setPaper('a4', 'portrait'); // A4 Tegak
+
+        // 4. Download / Stream PDF
+        return $pdf->stream('ID_Cards_' . $event->title . '.pdf');
+    }
 }

@@ -8,6 +8,7 @@ use App\Models\Registration;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use SimpleSoftwareIO\QrCode\Facades\QrCode;
+use Picqer\Barcode\BarcodeGeneratorPNG;
 
 class MyEventController extends Controller
 {
@@ -44,9 +45,14 @@ class MyEventController extends Controller
     {
         $registration = Registration::with('event')->findOrFail($id);
         
-        // Generate QR Code berisi ID Pendaftaran (untuk discan panitia nanti)
-        $qrcode = QrCode::size(200)->generate($registration->id);
+        // 1. Generate Barcode (Code 128 standard)
+        $generator = new BarcodeGeneratorPNG();
+        // Kita gunakan ID Pendaftaran sebagai isi barcode
+        $barcodeData = $generator->getBarcode($registration->id, $generator::TYPE_CODE_128);
+        
+        // Encode ke Base64 agar bisa tampil di img src
+        $barcodeBase64 = base64_encode($barcodeData);
 
-        return view('member.my-events.id-card', compact('registration', 'qrcode'));
+        return view('member.my-events.id-card', compact('registration', 'barcodeBase64'));
     }
 }

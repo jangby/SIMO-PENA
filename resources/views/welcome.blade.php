@@ -156,7 +156,7 @@
         <div id="features" class="max-w-7xl mx-auto px-4 sm:px-6 py-12 md:py-20">
             <div class="text-center mb-8 md:mb-10">
                 <span class="text-[#83218F] font-bold tracking-widest text-[10px] md:text-xs uppercase bg-purple-50 px-3 py-1 rounded-full">Fitur Unggulan</span>
-                <h2 class="text-2xl md:text-3xl font-extrabold text-gray-900 mt-3">Layanan Digital IPNU</h2>
+                <h2 class="text-2xl md:text-3xl font-extrabold text-gray-900 mt-3">Layanan Digital Pena</h2>
             </div>
 
             <div class="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-8">

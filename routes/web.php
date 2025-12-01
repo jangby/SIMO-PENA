@@ -126,6 +126,7 @@ Route::middleware(['auth', 'verified', 'admin'])->group(function () {
         // Data Peserta
         Route::get('/participants', [EventManagementController::class, 'participants'])->name('participants');
         Route::get('/participants/export', [EventManagementController::class, 'exportExcel'])->name('participants.export');
+        Route::get('/print-idcards', [EventManagementController::class, 'printAllIdCards'])->name('print.idcards');
         
         // Jadwal (Rundown)
         Route::get('/schedules', [EventManagementController::class, 'schedules'])->name('schedules');
