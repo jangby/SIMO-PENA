@@ -14,7 +14,9 @@
 
         <div class="px-4 -mt-6 relative z-20 max-w-xl mx-auto space-y-4">
             @forelse($myEvents as $reg)
-            <a href="{{ route('my-events.show', $reg->id) }}" class="block bg-white rounded-3xl shadow-md p-4 border border-gray-100 hover:shadow-lg transition active:scale-95">
+            <a href="{{ route('my-events.show', $reg->id) }}" 
+               @if($loop->first) id="first-event" @endif 
+               class="block bg-white rounded-3xl shadow-md p-4 border border-gray-100 hover:shadow-lg transition active:scale-95">
                 <div class="flex gap-4">
                     <div class="flex-shrink-0 w-16 h-16 bg-purple-50 rounded-2xl flex flex-col items-center justify-center text-[#83218F] border border-purple-100">
                         <span class="text-xs font-bold uppercase">{{ $reg->event->start_time->format('M') }}</span>
@@ -51,4 +53,63 @@
             @endforelse
         </div>
     </div>
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/driver.js@1.0.1/dist/driver.css"/>
+    <script src="https://cdn.jsdelivr.net/npm/driver.js@1.0.1/dist/driver.js.iife.js"></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // 1. Cek parameter di URL saat ini
+            const urlParams = new URLSearchParams(window.location.search);
+            const shouldStartTour = urlParams.get('start_tour');
+            const firstEvent = document.getElementById('first-event');
+
+            if (shouldStartTour && firstEvent) {
+                const driver = window.driver.js.driver;
+
+                const tour = driver({
+                    showProgress: false,
+                    animate: true,
+                    allowClose: false,
+                    doneBtnText: 'Buka Detail',
+                    nextBtnText: 'Lanjut',
+                    prevBtnText: 'Kembali',
+                    steps: [
+                        { 
+                            element: '#first-event', 
+                            popover: { 
+                                title: 'Kelola Kegiatan 🎫', 
+                                description: 'Ini adalah kegiatan yang Anda ikuti. Klik kartu ini untuk melihat <b>ID Card</b>, <b>QR Absensi</b>, dan <b>Rundown</b>.',
+                                side: "bottom", 
+                                align: 'center'
+                            } 
+                        }
+                    ],
+                    // SAAT TOMBOL 'BUKA DETAIL' DIKLIK:
+                    onDestroyStarted: () => {
+                        // 1. Ambil URL asli dari kartu pertama
+                        let targetUrl = firstEvent.getAttribute('href');
+
+                        // 2. Tambahkan parameter 'start_tour=true' ke URL tujuan
+                        // Cek dulu apakah URL sudah punya tanda tanya (?)
+                        if (targetUrl.indexOf('?') > -1) {
+                            targetUrl += '&start_tour=true';
+                        } else {
+                            targetUrl += '?start_tour=true';
+                        }
+
+                        // 3. Redirect Manual ke URL baru (yang sudah ada parameternya)
+                        window.location.href = targetUrl;
+                        
+                        tour.destroy();
+                    }
+                });
+
+                // Mulai Tour
+                setTimeout(() => {
+                    tour.drive();
+                }, 500);
+            }
+        });
+    </script>
 </x-app-layout>

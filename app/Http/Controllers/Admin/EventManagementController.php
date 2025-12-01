@@ -27,31 +27,54 @@ class EventManagementController extends Controller
         return view('admin.events.participants', compact('event', 'participants'));
     }
 
-    // --- HALAMAN 2: JADWAL / RUNDOWN ---
+    // TAMPILKAN JADWAL (DIKELOMPOKKAN PER HARI)
     public function schedules(Event $event)
     {
-        // Urutkan jadwal berdasarkan jam mulai
-        $schedules = $event->schedules()->orderBy('start_time')->get();
-        return view('admin.events.schedules', compact('event', 'schedules'));
+        // Ambil semua jadwal, urutkan berdasarkan waktu mulai
+        $rawSchedules = $event->schedules()->orderBy('start_time')->get();
+
+        // Grouping berdasarkan Tanggal (Y-m-d)
+        // Hasilnya: ['2025-01-01' => [sesi1, sesi2], '2025-01-02' => [sesi3]]
+        $groupedSchedules = $rawSchedules->groupBy(function($item) {
+            return $item->start_time->format('Y-m-d');
+        });
+
+        return view('admin.events.schedules', compact('event', 'groupedSchedules'));
     }
 
+    // SIMPAN JADWAL (MERGE TANGGAL + JAM)
     public function storeSchedule(Request $request, Event $event)
     {
         $request->validate([
-            'start_time' => 'required',
-            'end_time' => 'required',
+            'schedule_date' => 'required|date', // Input Tanggal
+            'start_time' => 'required',         // Input Jam Mulai
+            'end_time' => 'required',           // Input Jam Selesai
             'activity' => 'required|string',
             'pic' => 'nullable|string',
         ]);
 
-        $event->schedules()->create($request->all());
-        return back()->with('success', 'Jadwal berhasil ditambahkan.');
+        // Gabungkan Tanggal + Jam
+        // Contoh: "2025-01-01" + "08:00" = "2025-01-01 08:00:00"
+        $startDateTime = $request->schedule_date . ' ' . $request->start_time;
+        $endDateTime = $request->schedule_date . ' ' . $request->end_time;
+
+        $event->schedules()->create([
+            'start_time' => $startDateTime,
+            'end_time' => $endDateTime,
+            'activity' => $request->activity,
+            'pic' => $request->pic,
+        ]);
+
+        return back()->with('success', 'Sesi berhasil ditambahkan.');
     }
 
-    public function destroySchedule(EventSchedule $schedule)
+    // PERBAIKAN: Tambahkan (Event $event) di parameter pertama
+    public function destroySchedule(Event $event, EventSchedule $schedule)
     {
+        // Hapus jadwal
         $schedule->delete();
-        return back()->with('success', 'Sesi dihapus.');
+        
+        return back()->with('success', 'Sesi berhasil dihapus.');
     }
 
     // --- HALAMAN 3: ABSENSI ---

@@ -18,6 +18,7 @@ use App\Http\Controllers\Admin\FinanceController;
 use App\Http\Controllers\Member\MyEventController;
 use App\Http\Controllers\Member\ArticleController as MemberArticleController;
 use App\Http\Controllers\Member\AttendanceController;
+use App\Http\Controllers\TourController;
 
 /*
 |--------------------------------------------------------------------------
@@ -72,6 +73,9 @@ Route::middleware('auth')->group(function () {
     // Absensi
     Route::get('/absensi', [AttendanceController::class, 'index'])->name('member.attendance.index');
     Route::get('/absensi/{id}', [AttendanceController::class, 'show'])->name('member.attendance.show');
+
+
+Route::post('/complete-tour', [TourController::class, 'complete'])->name('tour.complete');
 });
 
 /*
@@ -101,7 +105,7 @@ Route::middleware(['auth', 'verified', 'admin'])->group(function () {
     Route::resource('/admin/letters', LetterController::class)->names('admin.letters');
     Route::resource('/admin/structures', StructureController::class)->names('admin.structures');
     Route::resource('/admin/socials', SocialMediaController::class)->only(['index', 'store', 'destroy'])->names('admin.socials');
-    
+
     // Route Keuangan Lengkap
     Route::get('/admin/finances', [FinanceController::class, 'index'])->name('admin.finances.index');
     Route::post('/admin/finances', [FinanceController::class, 'store'])->name('admin.finances.store'); // Simpan

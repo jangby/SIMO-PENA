@@ -30,14 +30,29 @@ class MyEventController extends Controller
     // 2. Dashboard Detail Kegiatan (Manajemen Peserta)
     public function show($id)
     {
-        $registration = Registration::with(['event', 'event.schedules'])->findOrFail($id);
-        
-        // Pastikan yang akses adalah pemilik data (Validasi sederhana by Phone)
+        $registration = Registration::with('event')->findOrFail($id);
+
+        // Validasi Pemilik
         if ($registration->phone != Auth::user()->profile->phone) {
             abort(403, 'Akses Ditolak');
         }
 
-        return view('member.my-events.show', compact('registration'));
+        // 1. AMBIL & GRUPKAN JADWAL PER TANGGAL
+        // Hasil: ['2025-01-01' => [sesi1, sesi2], '2025-01-02' => [sesi3]]
+        $groupedSchedules = $registration->event->schedules()
+                            ->orderBy('start_time')
+                            ->get()
+                            ->groupBy(function($item) {
+                                return $item->start_time->format('Y-m-d');
+                            });
+
+        // 2. GENERATE QR
+        $qrcode = \SimpleSoftwareIO\QrCode\Facades\QrCode::size(200)
+                    ->color(131, 33, 143)
+                    ->margin(2)
+                    ->generate($registration->id);
+
+        return view('member.my-events.show', compact('registration', 'qrcode', 'groupedSchedules'));
     }
 
     // 3. Tampilan ID Card (Siap Print/Screenshot)
