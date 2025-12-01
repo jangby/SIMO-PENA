@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0">
-    <title>PAC IPNU Limbangan - Portal Resmi</title>
+    <title>Pena Limbangan - Portal Resmi</title>
     
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=plus-jakarta-sans:400,500,600,700,800&display=swap" rel="stylesheet" />
@@ -95,7 +95,7 @@
                     </h1>
                     
                     <p class="text-purple-100 text-sm md:text-lg max-w-lg mx-auto lg:mx-0 mb-8 leading-relaxed font-medium opacity-90">
-                        Platform digital terintegrasi untuk pendaftaran kaderisasi, manajemen anggota, dan informasi kegiatan PAC IPNU Limbangan.
+                        Platform digital terintegrasi untuk pendaftaran kaderisasi, manajemen anggota, dan informasi kegiatan Pena Limbangan.
                     </p>
                     
                     <div class="flex flex-col sm:flex-row justify-center lg:justify-start gap-4 mb-8 lg:mb-0">
