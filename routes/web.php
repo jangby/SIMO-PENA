@@ -92,6 +92,7 @@ Route::middleware(['auth', 'verified', 'admin'])->group(function () {
     Route::get('/admin/registrations', [RegistrationApprovalController::class, 'index'])->name('admin.registrations.index');
     Route::get('/admin/registrations/{registration}', [RegistrationApprovalController::class, 'show'])->name('admin.registrations.show');
     Route::post('/admin/registrations/{registration}/approve', [RegistrationApprovalController::class, 'approve'])->name('admin.registrations.approve');
+    Route::post('/admin/registrations/{registration}/reject', [RegistrationApprovalController::class, 'reject'])->name('admin.registrations.reject');
 
     // 3. Manajemen Konten & Data Lain
     Route::resource('/admin/articles', ArticleController::class)->names('admin.articles');

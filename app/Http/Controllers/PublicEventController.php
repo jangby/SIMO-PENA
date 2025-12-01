@@ -70,56 +70,82 @@ class PublicEventController extends Controller
     // --- 4. PROSES SIMPAN PENDAFTARAN ---
     public function store(Request $request, Event $event)
     {
-        // Cek apakah event berbayar?
+        // --- 1. CEK DUPLIKAT (LOGIKA BARU) ---
+        // Cek apakah nomor ini sudah ada di event ini?
+        $existing = Registration::where('event_id', $event->id) // Event yang sama
+                                ->where('phone', $request->phone) // No WA yang sama
+                                ->whereIn('status', ['pending', 'approved']) // Status masih aktif
+                                ->first();
+
+        if ($existing) {
+            // Jika sudah ada, kembalikan ke form dengan pesan error
+            $statusMsg = $existing->status == 'approved' ? 'sudah terdaftar resmi' : 'sedang menunggu verifikasi';
+            
+            return back()
+                ->withInput() // Kembalikan isian form agar tidak ngetik ulang
+                ->withErrors(['phone' => "Nomor WhatsApp ini $statusMsg di acara ini!"]);
+        }
+        // -------------------------------------
+
         $isPaid = $event->price > 0;
 
+        // 2. Validasi Input
         $request->validate([
             'name' => 'required|string|max:255',
+            'gender' => 'required|in:L,P',
             'birth_place' => 'required|string|max:100',
             'birth_date' => 'required|date',
             'phone' => 'required|numeric',
             'school_origin' => 'required|string|max:255',
-            'address' => 'required|string',
             
-            // Validasi Kondisional: Wajib upload jika berbayar
-            'payment_proof' => $isPaid ? 'required|image|max:2048' : 'nullable', 
+            // Validasi Alamat Terpisah
+            'addr_street' => 'required|string',
+            'addr_rt' => 'required|numeric',
+            'addr_rw' => 'required|numeric',
+            'addr_village' => 'required|string',
+            'addr_district' => 'required|string',
+            'addr_regency' => 'required|string',
+            'addr_postal' => 'nullable|numeric',
             
+            'payment_proof' => $isPaid ? 'required|image|max:2048' : 'nullable',
             'certificate_file' => $event->type == 'lakmud' ? 'required|image|mimes:jpeg,png,jpg,pdf|max:2048' : 'nullable',
         ]);
 
-        // B. Upload File Bukti Pembayaran
+        // 3. GABUNGKAN ALAMAT
+        $fullAddress = "{$request->addr_street}, RT {$request->addr_rt} / RW {$request->addr_rw}, Ds. {$request->addr_village}, Kec. {$request->addr_district}, Kab. {$request->addr_regency}, {$request->addr_postal}";
+
+        // 4. Upload File
         $paymentPath = null;
         if ($request->hasFile('payment_proof')) {
             $paymentPath = $request->file('payment_proof')->store('payments', 'public');
         }
 
-        // C. Upload File Sertifikat (Jika ada)
         $certPath = null;
         if ($request->hasFile('certificate_file')) {
             $certPath = $request->file('certificate_file')->store('certificates', 'public');
         }
 
-        // D. Simpan ke Database
+        // 5. Simpan ke Database
         Registration::create([
             'event_id' => $event->id,
             'name' => $request->name,
+            'gender' => $request->gender,
             'birth_place' => $request->birth_place,
             'birth_date' => $request->birth_date,
             'phone' => $request->phone,
             'school_origin' => $request->school_origin,
-            'address' => $request->address,
+            'address' => $fullAddress,
             'payment_proof' => $paymentPath,
             'certificate_file' => $certPath,
-            'status' => 'pending' // Default pending, menunggu admin approve
+            'status' => 'pending'
         ]);
 
-        // E. Redirect ke WhatsApp Admin
-        $eventName = $event->title;
-        // Ganti dengan nomor Admin/Sekretaris (Format: 628xxx)
+        // 6. Redirect WA
+        $sapaan = ($request->gender == 'L') ? 'Rekan' : 'Rekanita';
         $adminPhone = '628xxxxxxxxxx'; 
         
-        $message = "Assalamu'alaikum, saya *$request->name* telah mendaftar acara *$eventName*.\n\n"
-                 . "Data diri dan bukti pembayaran sudah saya upload di website. Mohon diverifikasi. Terima kasih.";
+        $message = "Assalamu'alaikum, saya *$sapaan $request->name* telah mendaftar acara *{$event->title}*.\n\n"
+                 . "Data diri dan persyaratan sudah saya upload. Mohon diverifikasi. Terima kasih.";
         
         $waUrl = "https://wa.me/$adminPhone?text=" . urlencode($message);
         

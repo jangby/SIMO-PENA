@@ -86,16 +86,44 @@
                     </div>
                     @endif
 
-                    <div class="bg-white p-6 rounded-lg shadow-lg border-t-4 border-green-500">
+                    <div class="bg-white p-6 rounded-lg shadow-lg border-t-4 border-green-500" x-data="{ openRejectModal: false }">
                         <h3 class="text-lg font-bold text-gray-900 mb-2">Keputusan Admin</h3>
-                        <div class="flex gap-4 mt-4">
-                            <form action="{{ route('admin.registrations.approve', $registration->id) }}" method="POST" class="flex-1">
+                        <p class="text-sm text-gray-600 mb-6">
+                            Pastikan data dan bukti pembayaran sudah valid sebelum menyetujui.
+                        </p>
+
+                        <div class="flex gap-4">
+                            <button @click="openRejectModal = true" type="button" class="px-4 py-3 bg-red-100 text-red-700 rounded-lg font-bold hover:bg-red-200 transition flex-1 text-center border border-red-200">
+                                ❌ Tolak
+                            </button>
+
+                            <form action="{{ route('admin.registrations.approve', $registration->id) }}" method="POST" class="flex-[2]">
                                 @csrf
                                 <button type="submit" class="w-full px-4 py-3 bg-green-600 text-white rounded-lg font-bold hover:bg-green-700 shadow-md transition flex justify-center items-center">
+                                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
                                     SETUJUI & BUAT AKUN
                                 </button>
                             </form>
                         </div>
+
+                        <div x-show="openRejectModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm" style="display: none;">
+                            <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6 m-4 transform transition-all scale-100" @click.outside="openRejectModal = false">
+                                <h3 class="text-lg font-bold text-red-600 mb-2">Tolak Pendaftaran?</h3>
+                                <p class="text-sm text-gray-500 mb-4">Silakan masukkan alasan penolakan. Pesan ini akan dikirim ke WhatsApp pendaftar.</p>
+                                
+                                <form action="{{ route('admin.registrations.reject', $registration->id) }}" method="POST">
+                                    @csrf
+                                    
+                                    <textarea name="reason" rows="3" class="w-full border-gray-300 rounded-xl focus:ring-red-500 focus:border-red-500 text-sm mb-4" placeholder="Contoh: Bukti pembayaran buram / Data tidak sesuai..." required></textarea>
+                                    
+                                    <div class="flex justify-end gap-3">
+                                        <button type="button" @click="openRejectModal = false" class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg font-bold hover:bg-gray-200 text-sm">Batal</button>
+                                        <button type="submit" class="px-4 py-2 bg-red-600 text-white rounded-lg font-bold hover:bg-red-700 text-sm shadow-lg">Kirim Penolakan</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+
                     </div>
 
                 </div>
