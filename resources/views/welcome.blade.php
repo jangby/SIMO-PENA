@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0">
-    <title>PAC IPNU Limbangan - Super App</title>
+    <title>PAC IPNU Limbangan - Portal Resmi</title>
     
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=plus-jakarta-sans:400,500,600,700,800&display=swap" rel="stylesheet" />
@@ -16,114 +16,202 @@
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
         
-        /* Custom Gradient Text */
-        .text-gradient {
-            background: linear-gradient(135deg, #FFFFFF 0%, #E9D5FF 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-        
-        /* Mesh Gradient Background */
         .mesh-bg {
             background-color: #83218F;
             background-image: 
                 radial-gradient(at 0% 0%, hsla(280,100%,70%,1) 0, transparent 50%), 
                 radial-gradient(at 100% 0%, hsla(320,100%,60%,1) 0, transparent 50%);
         }
-
-        /* Glass Card */
-        .glass {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.5);
+        
+        @keyframes blob {
+            0% { transform: translate(0px, 0px) scale(1); }
+            33% { transform: translate(30px, -50px) scale(1.1); }
+            66% { transform: translate(-20px, 20px) scale(0.9); }
+            100% { transform: translate(0px, 0px) scale(1); }
         }
+        .animate-blob { animation: blob 7s infinite; }
+        .animation-delay-2000 { animation-delay: 2s; }
     </style>
 </head>
-<body class="antialiased text-slate-800">
+<body class="antialiased text-slate-800 flex flex-col min-h-screen">
 
-    <div class="fixed top-0 left-0 w-full h-96 mesh-bg rounded-b-[3rem] shadow-2xl z-0"></div>
+    <nav class="fixed w-full z-50 top-0 transition-all duration-300 bg-white/90 backdrop-blur-md border-b border-gray-100/50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16 items-center">
+                <div class="flex items-center gap-3">
+                    <img src="{{ asset('logo/logopena.jpg') }}" class="h-9 w-9 object-contain drop-shadow-sm">
+                    <div class="leading-tight">
+                        <h1 class="font-bold text-[#83218F] text-base md:text-lg tracking-tight">Pena</h1>
+                        <p class="text-gray-400 text-[10px] md:text-xs font-medium tracking-widest uppercase">Limbangan</p>
+                    </div>
+                </div>
 
-    <div class="relative z-10 max-w-md mx-auto min-h-screen flex flex-col">
+                <div class="hidden md:flex gap-8">
+                    <a href="#features" class="text-sm font-medium text-gray-600 hover:text-[#83218F] transition">Fitur</a>
+                    <a href="#gallery" class="text-sm font-medium text-gray-600 hover:text-[#83218F] transition">Galeri</a>
+                    <a href="#event-list" class="text-sm font-medium text-gray-600 hover:text-[#83218F] transition">Kegiatan</a>
+                </div>
+
+                <div class="flex items-center gap-3">
+                    @if (Route::has('login'))
+                        @auth
+                            <a href="{{ url('/dashboard') }}" class="bg-[#83218F] text-white px-5 py-2 rounded-full font-bold text-xs md:text-sm shadow-lg shadow-purple-200 transition transform hover:-translate-y-0.5">
+                                Dashboard
+                            </a>
+                        @else
+                            <a href="{{ route('login') }}" class="text-gray-500 font-bold text-xs md:text-sm px-3 hover:text-[#83218F] transition hidden sm:block">Masuk</a>
+                            <a href="{{ route('register') }}" class="bg-[#83218F] text-white px-5 py-2 rounded-full font-bold text-xs md:text-sm shadow-lg shadow-purple-200 transition transform hover:-translate-y-0.5 hover:bg-purple-800">
+                                Daftar
+                            </a>
+                        @endauth
+                    @endif
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="relative pt-28 pb-20 md:pt-40 md:pb-32 mesh-bg rounded-b-[2.5rem] md:rounded-b-[4rem] overflow-hidden shadow-2xl z-10">
         
-        <header class="px-6 pt-12 pb-6 flex justify-between items-start">
-            <div>
-                <div class="flex items-center gap-2 mb-1 opacity-90">
-                    <span class="bg-white/20 p-1 rounded-full"><img src="{{ asset('logo/logopena.jpg') }}" class="w-4 h-4"></span>
-                    <span class="text-white text-[10px] font-bold tracking-widest uppercase">PENA Kec. Bl. Limbangan</span>
-                </div>
-                <h1 class="text-3xl font-extrabold text-white leading-tight">
-                    Portal <br/> <span class="text-yellow-300">Kaderisasi.</span>
-                </h1>
-            </div>
-            
-            <div>
-                @auth
-                    <a href="{{ url('/dashboard') }}" class="flex items-center gap-2 bg-white text-[#83218F] px-4 py-2 rounded-full font-bold text-xs shadow-lg active:scale-95 transition">
-                        <div class="w-5 h-5 rounded-full bg-purple-100 flex items-center justify-center text-[10px]">
-                            {{ substr(Auth::user()->name, 0, 1) }}
-                        </div>
-                        Akun
-                    </a>
-                @else
-                    <a href="{{ route('login') }}" class="flex items-center gap-2 bg-white/20 backdrop-blur-md border border-white/30 text-white px-5 py-2.5 rounded-full font-bold text-xs hover:bg-white hover:text-[#83218F] transition">
-                        Masuk Akun
-                    </a>
-                @endauth
-            </div>
-        </header>
+        <div class="absolute top-0 right-0 w-64 h-64 md:w-96 md:h-96 bg-purple-500 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob"></div>
+        <div class="absolute bottom-0 left-0 w-64 h-64 md:w-96 md:h-96 bg-yellow-500 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob animation-delay-2000"></div>
 
-        <div class="px-6 mb-6">
-            <div class="bg-white/20 backdrop-blur-md border border-white/30 rounded-2xl p-3 flex items-center gap-3 text-purple-100 shadow-inner">
-                <svg class="w-5 h-5 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-                <span class="text-sm font-medium opacity-80">Cari kegiatan atau berita...</span>
-            </div>
-        </div>
-
-        <div class="px-6 grid grid-cols-4 gap-4 mb-8">
-            <a href="{{ route('public.structure') }}" class="flex flex-col items-center gap-2 group">
-                <div class="w-14 h-14 bg-white rounded-2xl shadow-lg shadow-purple-900/20 flex items-center justify-center text-[#83218F] group-active:scale-90 transition">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
-                </div>
-                <span class="text-[10px] font-bold text-white/90">Struktur</span>
-            </a>
-            <a href="{{ route('public.gallery') }}" class="flex flex-col items-center gap-2 group">
-                <div class="w-14 h-14 bg-white rounded-2xl shadow-lg shadow-purple-900/20 flex items-center justify-center text-yellow-500 group-active:scale-90 transition">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
-                </div>
-                <span class="text-[10px] font-bold text-white/90">Galeri</span>
-            </a>
-            <a href="#news-section" class="flex flex-col items-center gap-2 group">
-                <div class="w-14 h-14 bg-white rounded-2xl shadow-lg shadow-purple-900/20 flex items-center justify-center text-blue-500 group-active:scale-90 transition">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"></path></svg>
-                </div>
-                <span class="text-[10px] font-bold text-white/90">Berita</span>
-            </a>
-            <a href="{{ route('register') }}" class="flex flex-col items-center gap-2 group">
-                <div class="w-14 h-14 bg-gradient-to-br from-yellow-300 to-yellow-500 rounded-2xl shadow-lg shadow-yellow-500/30 flex items-center justify-center text-[#83218F] group-active:scale-90 transition border-2 border-white/50">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2.25-4.125a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zM4 19.235v-.11a6.375 6.375 0 0112.75 0v.109A12.318 12.318 0 0110.374 21c-2.331 0-4.512-.645-6.374-1.766z"></path></svg>
-                </div>
-                <span class="text-[10px] font-bold text-white/90">Daftar</span>
-            </a>
-        </div>
-
-        <div class="glass rounded-t-[2.5rem] flex-1 px-6 pt-8 pb-20 shadow-[0_-10px_40px_rgba(0,0,0,0.1)]">
-            
-            @if($galleries->isNotEmpty())
-            <div class="mb-8">
-                <div class="flex justify-between items-center mb-4">
-                    <h2 class="text-lg font-bold text-gray-800">Highlight</h2>
-                    <a href="{{ route('public.gallery') }}" class="text-xs font-bold text-[#83218F]">Lihat Semua</a>
-                </div>
+        <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex flex-col lg:flex-row gap-10 md:gap-12 items-center">
                 
-                <div class="swiper mySwiper rounded-2xl shadow-xl overflow-hidden aspect-video">
+                <div class="text-center lg:text-left z-20 w-full lg:w-1/2">
+                    <span class="inline-flex items-center gap-2 py-1.5 px-4 rounded-full bg-white/20 border border-white/30 text-white text-[10px] md:text-xs font-bold uppercase tracking-wider mb-6 backdrop-blur-md shadow-sm">
+                        <span class="w-2 h-2 rounded-full bg-green-400 animate-pulse"></span>
+                        Portal Resmi Organisasi
+                    </span>
+                    
+                    <h1 class="text-4xl md:text-6xl lg:text-7xl font-extrabold text-white mb-6 leading-tight tracking-tight drop-shadow-sm">
+                        Belajar, Berjuang, <br/>
+                        <span class="text-yellow-300 relative inline-block">
+                            Bertakwa.
+                        </span>
+                    </h1>
+                    
+                    <p class="text-purple-100 text-sm md:text-lg max-w-lg mx-auto lg:mx-0 mb-8 leading-relaxed font-medium opacity-90">
+                        Platform digital terintegrasi untuk pendaftaran kaderisasi, manajemen anggota, dan informasi kegiatan PAC IPNU Limbangan.
+                    </p>
+                    
+                    <div class="flex flex-col sm:flex-row justify-center lg:justify-start gap-4 mb-8 lg:mb-0">
+                        <a href="#event-list" class="bg-white text-[#83218F] px-8 py-3.5 rounded-full font-bold text-sm shadow-xl hover:shadow-2xl hover:bg-gray-50 transition transform hover:-translate-y-1 border-2 border-transparent">
+                            Lihat Kegiatan
+                        </a>
+                        <a href="{{ route('public.structure') }}" class="bg-transparent border-2 border-white/30 text-white px-8 py-3.5 rounded-full font-bold text-sm hover:bg-white/10 transition flex items-center justify-center gap-2 backdrop-blur-sm">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
+                            Struktur
+                        </a>
+                    </div>
+                </div>
+
+                <div class="w-full lg:w-1/2 flex justify-center lg:justify-end z-20">
+                    <div class="w-full max-w-md">
+                        <div class="grid grid-cols-2 gap-3 md:gap-4">
+                            
+                            <div class="bg-white p-5 rounded-[2rem] shadow-lg flex flex-col justify-between h-36 md:h-40 relative overflow-hidden group hover:-translate-y-1 transition duration-300">
+                                <div class="w-10 h-10 bg-purple-100 rounded-xl flex items-center justify-center text-[#83218F] mb-2">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+                                </div>
+                                <div>
+                                    <h3 class="text-[#83218F] font-black text-2xl md:text-3xl">{{ \App\Models\User::where('role', 'member')->count() }}</h3>
+                                    <p class="text-gray-400 text-[10px] uppercase font-bold tracking-widest mt-1">Total Kader</p>
+                                </div>
+                            </div>
+
+                            <div class="bg-yellow-400 p-5 rounded-[2rem] shadow-lg flex flex-col justify-between h-36 md:h-40 relative overflow-hidden group hover:-translate-y-1 transition duration-300">
+                                <div class="w-10 h-10 bg-white/30 rounded-xl flex items-center justify-center text-white mb-2 backdrop-blur-sm">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                                </div>
+                                <div>
+                                    <h3 class="text-[#83218F] font-black text-2xl md:text-3xl">{{ \App\Models\Event::count() }}</h3>
+                                    <p class="text-[#83218F]/80 text-[10px] uppercase font-bold tracking-widest mt-1">Total Kegiatan</p>
+                                </div>
+                            </div>
+
+                            <div class="col-span-2 bg-white/10 backdrop-blur-md border border-white/20 p-5 rounded-[2rem] shadow-xl flex items-center justify-between h-24 mt-1 hover:-translate-y-1 transition duration-300">
+                                <div>
+                                    <h3 class="text-white font-black text-2xl md:text-3xl">{{ \App\Models\Article::where('status', 'published')->count() }}</h3>
+                                    <p class="text-purple-100 text-[10px] uppercase font-bold tracking-widest mt-1">Berita & Artikel</p>
+                                </div>
+                                <div class="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center text-white">
+                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"></path></svg>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <div class="bg-gray-50 -mt-10 md:-mt-20 relative z-20 rounded-t-[2.5rem] md:rounded-t-[4rem] overflow-hidden min-h-screen">
+        
+        <div id="features" class="max-w-7xl mx-auto px-4 sm:px-6 py-12 md:py-20">
+            <div class="text-center mb-8 md:mb-10">
+                <span class="text-[#83218F] font-bold tracking-widest text-[10px] md:text-xs uppercase bg-purple-50 px-3 py-1 rounded-full">Fitur Unggulan</span>
+                <h2 class="text-2xl md:text-3xl font-extrabold text-gray-900 mt-3">Layanan Digital IPNU</h2>
+            </div>
+
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-8">
+                <div class="bg-white p-5 rounded-2xl md:rounded-3xl shadow-sm hover:shadow-xl transition duration-300 border border-gray-100 group">
+                    <div class="w-12 h-12 bg-purple-50 rounded-xl flex items-center justify-center text-[#83218F] mb-3 group-hover:bg-[#83218F] group-hover:text-white transition">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"></path></svg>
+                    </div>
+                    <h3 class="font-bold text-sm md:text-lg text-gray-800 mb-1">Absensi QR</h3>
+                    <p class="text-xs md:text-sm text-gray-500 leading-relaxed">Presensi digital cepat.</p>
+                </div>
+
+                <div class="bg-white p-5 rounded-2xl md:rounded-3xl shadow-sm hover:shadow-xl transition duration-300 border border-gray-100 group">
+                    <div class="w-12 h-12 bg-yellow-50 rounded-xl flex items-center justify-center text-yellow-600 mb-3 group-hover:bg-yellow-500 group-hover:text-white transition">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                    </div>
+                    <h3 class="font-bold text-sm md:text-lg text-gray-800 mb-1">Database</h3>
+                    <p class="text-xs md:text-sm text-gray-500 leading-relaxed">Data anggota terpusat.</p>
+                </div>
+
+                <div class="bg-white p-5 rounded-2xl md:rounded-3xl shadow-sm hover:shadow-xl transition duration-300 border border-gray-100 group">
+                    <div class="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center text-blue-600 mb-3 group-hover:bg-blue-600 group-hover:text-white transition">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                    </div>
+                    <h3 class="font-bold text-sm md:text-lg text-gray-800 mb-1">E-Event</h3>
+                    <p class="text-xs md:text-sm text-gray-500 leading-relaxed">Daftar kegiatan online.</p>
+                </div>
+
+                <div class="bg-white p-5 rounded-2xl md:rounded-3xl shadow-sm hover:shadow-xl transition duration-300 border border-gray-100 group">
+                    <div class="w-12 h-12 bg-green-50 rounded-xl flex items-center justify-center text-green-600 mb-3 group-hover:bg-green-600 group-hover:text-white transition">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"></path></svg>
+                    </div>
+                    <h3 class="font-bold text-sm md:text-lg text-gray-800 mb-1">Berita</h3>
+                    <p class="text-xs md:text-sm text-gray-500 leading-relaxed">Info terkini pelajar NU.</p>
+                </div>
+            </div>
+        </div>
+
+        @if($galleries->isNotEmpty())
+        <div id="gallery" class="py-8 md:py-12 bg-white border-y border-gray-100">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6">
+                <div class="flex justify-between items-center mb-6 px-2">
+                    <div>
+                        <h2 class="text-xl md:text-3xl font-extrabold text-gray-900">Galeri</h2>
+                        <p class="text-gray-400 text-xs hidden md:block">Dokumentasi kegiatan kami</p>
+                    </div>
+                    <a href="{{ route('public.gallery') }}" class="text-xs md:text-sm font-bold text-[#83218F] bg-purple-50 px-3 py-1.5 rounded-full hover:bg-purple-100 transition">
+                        Lihat Semua &rarr;
+                    </a>
+                </div>
+
+                <div class="swiper mySwiper rounded-2xl md:rounded-3xl shadow-lg overflow-hidden aspect-[16/9] md:aspect-[21/9]">
                     <div class="swiper-wrapper">
                         @foreach($galleries as $gallery)
-                        <div class="swiper-slide relative">
-                            <img src="{{ asset('storage/' . $gallery->image) }}" class="w-full h-full object-cover">
-                            <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent"></div>
-                            <div class="absolute bottom-4 left-4 right-4">
-                                <span class="bg-[#83218F] text-white text-[9px] font-bold px-2 py-1 rounded mb-1 inline-block">Galeri</span>
-                                <h3 class="text-white font-bold text-sm truncate">{{ $gallery->title }}</h3>
+                        <div class="swiper-slide relative group">
+                            <img src="{{ asset('storage/' . $gallery->image) }}" class="w-full h-full object-cover transition duration-700 group-hover:scale-105">
+                            <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent flex flex-col justify-end p-6 md:p-10">
+                                <h3 class="text-white font-bold text-base md:text-2xl line-clamp-1 mb-1">{{ $gallery->title }}</h3>
+                                <p class="text-gray-300 text-[10px] md:text-xs">{{ $gallery->created_at->format('d M Y') }}</p>
                             </div>
                         </div>
                         @endforeach
@@ -131,130 +219,138 @@
                     <div class="swiper-pagination"></div>
                 </div>
             </div>
-            @endif
+        </div>
+        @endif
 
-            <div id="event-list" class="mb-8">
-                <h2 class="text-lg font-bold text-gray-800 mb-4">Pendaftaran Buka</h2>
-                
-                @if($events->isEmpty())
-                    <div class="bg-gray-50 border border-dashed border-gray-200 rounded-2xl p-6 text-center">
-                        <p class="text-xs text-gray-400">Tidak ada kegiatan aktif saat ini.</p>
-                    </div>
-                @else
-                    <div class="space-y-4">
-                        @foreach($events as $event)
-                        <a href="{{ route('event.register', $event->id) }}" class="block bg-white p-1 rounded-2xl shadow-sm border border-gray-100 active:scale-95 transition">
-                            <div class="flex items-center gap-4 p-2">
-                                <div class="w-16 h-16 bg-purple-50 rounded-xl flex flex-col items-center justify-center text-[#83218F] shrink-0">
-                                    <span class="text-[10px] font-bold uppercase">{{ $event->start_time->format('M') }}</span>
-                                    <span class="text-xl font-black">{{ $event->start_time->format('d') }}</span>
-                                </div>
-                                
-                                <div class="flex-1 min-w-0">
-                                    <div class="flex items-center gap-2 mb-1">
-                                        <span class="bg-yellow-100 text-yellow-700 text-[9px] font-bold px-1.5 py-0.5 rounded uppercase">{{ $event->type }}</span>
-                                        <span class="text-[10px] text-gray-400 truncate flex items-center">
-                                            <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
-                                            {{ Str::limit($event->location, 15) }}
-                                        </span>
-                                    </div>
-                                    <h3 class="font-bold text-gray-800 text-sm truncate">{{ $event->title }}</h3>
-                                    <p class="text-[10px] text-[#83218F] font-semibold mt-1">Ketuk untuk daftar &rarr;</p>
-                                </div>
-                            </div>
-                        </a>
-                        @endforeach
-                    </div>
-                @endif
+        <div id="event-list" class="max-w-7xl mx-auto px-4 sm:px-6 py-12 md:py-20">
+            <div class="text-center mb-8 md:mb-10">
+                <span class="text-yellow-600 font-bold tracking-widest text-[10px] md:text-xs uppercase bg-yellow-50 px-3 py-1 rounded-full">Open Recruitment</span>
+                <h2 class="text-2xl md:text-3xl font-extrabold text-gray-900 mt-3">Pendaftaran Buka</h2>
             </div>
 
-            @if($articles->isNotEmpty())
-            <div id="news-section" class="mb-8">
-                <h2 class="text-lg font-bold text-gray-800 mb-4">Kabar IPNU</h2>
-                
-                <div class="flex overflow-x-auto gap-4 pb-4 -mx-6 px-6 no-scrollbar">
+            @if($events->isEmpty())
+                <div class="bg-white rounded-3xl p-8 md:p-10 text-center border-2 border-dashed border-gray-200">
+                    <p class="text-gray-400 text-sm font-medium">Belum ada kegiatan yang dibuka.</p>
+                </div>
+            @else
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 md:gap-6">
+                    @foreach($events as $event)
+                    <a href="{{ route('event.register', $event->id) }}" class="group block bg-white rounded-2xl md:rounded-3xl overflow-hidden shadow-sm hover:shadow-xl transition duration-300 border border-gray-100 flex flex-col h-full">
+                        <div class="h-40 md:h-48 bg-gray-200 relative overflow-hidden">
+                            @if($event->banner)
+                                <img src="{{ asset('storage/' . $event->banner) }}" class="w-full h-full object-cover group-hover:scale-110 transition duration-500">
+                            @else
+                                <div class="w-full h-full bg-[#83218F] flex items-center justify-center text-white/20 font-black text-2xl md:text-3xl">IPNU</div>
+                            @endif
+                            <div class="absolute top-3 left-3">
+                                <span class="bg-white/95 text-[#83218F] text-[10px] font-bold px-2 py-1 rounded-md uppercase shadow-sm">
+                                    {{ $event->type }}
+                                </span>
+                            </div>
+                        </div>
+                        
+                        <div class="p-5 flex-1 flex flex-col">
+                            <div class="flex items-center text-[10px] md:text-xs text-gray-500 mb-2 gap-3">
+                                <span class="flex items-center">
+                                    <svg class="w-3.5 h-3.5 mr-1 text-[#83218F]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                                    {{ $event->start_time->format('d M') }}
+                                </span>
+                                <span class="flex items-center truncate">
+                                    <svg class="w-3.5 h-3.5 mr-1 text-[#83218F]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                                    {{ Str::limit($event->location, 15) }}
+                                </span>
+                            </div>
+
+                            <h3 class="text-base md:text-xl font-bold text-gray-900 mb-3 leading-snug group-hover:text-[#83218F] transition line-clamp-2">
+                                {{ $event->title }}
+                            </h3>
+                            
+                            <div class="mt-auto pt-3 border-t border-gray-50 flex items-center justify-between">
+                                <span class="text-xs font-bold text-gray-400 group-hover:text-[#83218F] transition">Daftar</span>
+                                <div class="w-7 h-7 md:w-8 md:h-8 rounded-full bg-gray-50 flex items-center justify-center group-hover:bg-[#83218F] group-hover:text-white transition">
+                                    <svg class="w-3 h-3 md:w-4 md:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+                                </div>
+                            </div>
+                        </div>
+                    </a>
+                    @endforeach
+                </div>
+            @endif
+        </div>
+
+        @if($articles->isNotEmpty())
+        <div id="news-section" class="py-12 md:py-16 bg-white border-t border-gray-100">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6">
+                <div class="flex justify-between items-center mb-6 md:mb-8">
+                    <h2 class="text-xl md:text-2xl font-extrabold text-gray-900">Kabar IPNU</h2>
+                    <a href="{{ route('public.article.show', $articles->first()->slug) }}" class="text-xs md:text-sm font-bold text-gray-500 hover:text-[#83218F]">Arsip Berita &rarr;</a>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
                     @foreach($articles as $article)
-                    <a href="{{ route('public.article.show', $article->slug) }}" class="shrink-0 w-60 group">
-                        <div class="relative h-32 rounded-xl overflow-hidden mb-3">
+                    <a href="{{ route('public.article.show', $article->slug) }}" class="group block">
+                        <div class="relative h-40 md:h-48 rounded-2xl overflow-hidden mb-3 md:mb-4 bg-gray-200">
                             @if($article->thumbnail)
                                 <img src="{{ asset('storage/' . $article->thumbnail) }}" class="w-full h-full object-cover group-hover:scale-110 transition duration-500">
                             @else
-                                <div class="w-full h-full bg-gray-200 flex items-center justify-center text-gray-400 text-xs font-bold">NO IMG</div>
+                                <div class="w-full h-full flex items-center justify-center text-gray-400 font-bold">IPNU NEWS</div>
                             @endif
-                            <div class="absolute top-2 left-2 bg-white/90 px-2 py-0.5 rounded text-[9px] font-bold text-[#83218F]">
+                            <div class="absolute bottom-2 left-2 md:bottom-3 md:left-3 bg-white/90 backdrop-blur-sm px-2 py-0.5 md:px-3 md:py-1 rounded-lg text-[10px] font-bold text-[#83218F] shadow-sm">
                                 {{ $article->created_at->diffForHumans() }}
                             </div>
                         </div>
-                        <h4 class="font-bold text-sm text-gray-800 leading-snug line-clamp-2 group-hover:text-[#83218F] transition">
+                        <h3 class="font-bold text-base md:text-lg text-gray-900 leading-snug group-hover:text-[#83218F] transition line-clamp-2">
                             {{ $article->title }}
-                        </h4>
+                        </h3>
                     </a>
                     @endforeach
                 </div>
             </div>
+        </div>
+        @endif
+
+        <div class="bg-gray-50 py-10 md:py-12 text-center border-t border-gray-200">
+            @if(isset($socials) && $socials->isNotEmpty())
+            <div class="flex justify-center gap-3 md:gap-4 mb-6 md:mb-8">
+                @foreach($socials as $soc)
+                    <a href="{{ $soc->url }}" target="_blank" class="w-10 h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center bg-white shadow-sm border border-gray-100 hover:-translate-y-1 transition text-gray-400 hover:text-white
+                        {{ $soc->platform == 'instagram' ? 'hover:bg-gradient-to-tr hover:from-yellow-400 hover:via-red-500 hover:to-purple-500' : '' }}
+                        {{ $soc->platform == 'tiktok' ? 'hover:bg-black' : '' }}
+                        {{ $soc->platform == 'youtube' ? 'hover:bg-red-600' : '' }}
+                        {{ $soc->platform == 'facebook' ? 'hover:bg-blue-600' : '' }}
+                        {{ $soc->platform == 'twitter' ? 'hover:bg-black' : '' }}
+                        {{ $soc->platform == 'website' ? 'hover:bg-green-600' : '' }}
+                    ">
+                        @if($soc->platform == 'instagram') <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 2c2.717 0 3.056.01 4.122.06 1.065.05 1.79.217 2.428.465.66.254 1.216.598 1.772 1.153a4.908 4.908 0 011.153 1.772c.247.637.415 1.363.465 2.428.047 1.066.06 1.405.06 4.122 0 2.717-.01 3.056-.06 4.122-.05 1.065-.217 1.79-.465 2.428a4.883 4.883 0 01-1.153 1.772 4.915 4.915 0 01-1.772 1.153c-.637.247-1.363.415-2.428.465-1.066.047-1.405.06-4.122.06-2.717 0-3.056-.01-4.122-.06-1.065-.05-1.79-.217-2.428-.465a4.89 4.89 0 01-1.772-1.153 4.904 4.904 0 01-1.153-1.772c-.247-.637-.415-1.363-.465-2.428C2.013 15.056 2 14.717 2 12c0-2.717.01-3.056.06-4.122.05-1.065.217-1.79.465-2.428a4.88 4.88 0 011.153-1.772A4.897 4.897 0 015.468 2.525c.637-.247 1.363-.415 2.428-.465C8.944 2.013 9.283 2 12 2z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 7a5 5 0 100 10 5 5 0 000-10z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.5 6.5h.01"></path></svg>
+                        @else <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"></path></svg>
+                        @endif
+                    </a>
+                @endforeach
+            </div>
             @endif
 
-            <div class="pt-8 mt-8 border-t border-dashed border-gray-200">
-                
-                @if(isset($socials) && $socials->isNotEmpty())
-                <div class="flex flex-wrap justify-center gap-3 mb-6">
-                    @foreach($socials as $soc)
-                        <a href="{{ $soc->url }}" target="_blank" class="group relative w-10 h-10 flex items-center justify-center rounded-full bg-white border border-gray-100 shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-1 overflow-hidden">
-                            
-                            <div class="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300
-                                {{ $soc->platform == 'instagram' ? 'bg-gradient-to-tr from-yellow-400 via-red-500 to-purple-500' : '' }}
-                                {{ $soc->platform == 'tiktok' ? 'bg-black' : '' }}
-                                {{ $soc->platform == 'youtube' ? 'bg-red-600' : '' }}
-                                {{ $soc->platform == 'facebook' ? 'bg-blue-600' : '' }}
-                                {{ $soc->platform == 'twitter' ? 'bg-black' : '' }}
-                                {{ $soc->platform == 'website' ? 'bg-green-500' : '' }}
-                            "></div>
-
-                            <div class="relative z-10 text-gray-400 group-hover:text-white transition-colors duration-300">
-                                @if($soc->platform == 'instagram')
-                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 2c2.717 0 3.056.01 4.122.06 1.065.05 1.79.217 2.428.465.66.254 1.216.598 1.772 1.153a4.908 4.908 0 011.153 1.772c.247.637.415 1.363.465 2.428.047 1.066.06 1.405.06 4.122 0 2.717-.01 3.056-.06 4.122-.05 1.065-.217 1.79-.465 2.428a4.883 4.883 0 01-1.153 1.772 4.915 4.915 0 01-1.772 1.153c-.637.247-1.363.415-2.428.465-1.066.047-1.405.06-4.122.06-2.717 0-3.056-.01-4.122-.06-1.065-.05-1.79-.217-2.428-.465a4.89 4.89 0 01-1.772-1.153 4.904 4.904 0 01-1.153-1.772c-.247-.637-.415-1.363-.465-2.428C2.013 15.056 2 14.717 2 12c0-2.717.01-3.056.06-4.122.05-1.065.217-1.79.465-2.428a4.88 4.88 0 011.153-1.772A4.897 4.897 0 015.468 2.525c.637-.247 1.363-.415 2.428-.465C8.944 2.013 9.283 2 12 2z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 7a5 5 0 100 10 5 5 0 000-10z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.5 6.5h.01"></path></svg>
-                                @elseif($soc->platform == 'tiktok')
-                                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.03 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.35-1.17 1.09-1.07 1.93.03.58.49 1.13 1.07 1.3.74.22 1.65.22 2.22-.45.62-.73.54-1.71.54-2.61V.02z"/></svg>
-                                @elseif($soc->platform == 'youtube')
-                                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M19.615 3.184c-3.604-.246-11.631-.245-15.23 0-3.897.266-4.356 2.62-4.385 8.816.029 6.185.484 8.549 4.385 8.816 3.6.245 11.626.246 15.23 0 3.897-.266 4.356-2.62 4.385-8.816-.029-6.185-.484-8.549-4.385-8.816zm-10.615 12.816v-8l8 3.993-8 4.007z"/></svg>
-                                @elseif($soc->platform == 'facebook')
-                                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M9 8h-3v4h3v12h5v-12h3.642l.358-4h-4v-1.667c0-.955.192-1.333 1.115-1.333h2.885v-5h-3.808c-3.596 0-5.192 1.583-5.192 4.615v3.385z"/></svg>
-                                @elseif($soc->platform == 'twitter')
-                                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
-                                @else
-                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"></path></svg>
-                                @endif
-                            </div>
-                        </a>
-                    @endforeach
-                </div>
-                @endif
-
-                <div class="text-center">
-                    <img src="{{ asset('logo/logopena.jpg') }}" class="w-8 h-8 mx-auto mb-2 opacity-50 grayscale hover:grayscale-0 transition duration-500">
-                    <p class="text-[10px] text-gray-400">
-                        &copy; {{ date('Y') }} Pena Limbangan.<br/>
-                        <span class="italic text-gray-300">Belajar, Berjuang, Bertakwa.</span>
-                    </p>
-                </div>
-            </div>
-
+            <img src="{{ asset('logo/logopena.jpg') }}" class="w-10 h-10 mx-auto mb-3 opacity-50 grayscale hover:grayscale-0 transition duration-500">
+            <p class="text-xs text-gray-400">
+                &copy; {{ date('Y') }} Pena Limbangan.<br/>
+                <span class="italic text-gray-300">Belajar, Berjuang, Bertakwa.</span>
+            </p>
         </div>
-    </div>
 
-        </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
     <script>
         var swiper = new Swiper(".mySwiper", {
-            spaceBetween: 10,
-            centeredSlides: true,
+            spaceBetween: 20,
+            centeredSlides: false,
             loop: true,
-            autoplay: { delay: 3000, disableOnInteraction: false },
+            autoplay: { delay: 4000, disableOnInteraction: false },
             pagination: { el: ".swiper-pagination", clickable: true },
-            effect: 'fade',
-            fadeEffect: { crossFade: true },
+            breakpoints: {
+                640: { slidesPerView: 1 },
+                768: { slidesPerView: 2 },
+                1024: { slidesPerView: 3 },
+            },
         });
     </script>
 </body>

@@ -86,7 +86,7 @@ Route::resource('/admin/socials', SocialMediaController::class)->only(['index', 
 
 // Resource Route otomatis membuat route index, create, store, destroy, dll
     Route::get('/admin/events/{event}/manage', [EventController::class, 'manage'])->name('admin.events.manage');
-    Route::patch('/{event}/update-status', [EventController::class, 'updateStatus'])->name('admin.events.status');
+    //Route::patch('/{event}/update-status', [EventController::class, 'updateStatus'])->name('admin.events.status');
 
     // Route Resource (CRUD)
     Route::resource('/admin/events', EventController::class)->names([
