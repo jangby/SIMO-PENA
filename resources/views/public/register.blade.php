@@ -105,20 +105,47 @@
                         </div>
                     </div>
 
-                    <div>
+                    <div x-data="{ delegasi: '{{ old('organization_id', '') }}' }">
                         <div class="flex items-center gap-1 mb-1.5 ml-1">
-                            <label class="block text-xs font-bold text-gray-500 uppercase tracking-wide">Delegasi</label>
-                            
+                            <label class="block text-xs font-bold text-gray-500 uppercase tracking-wide">Delegasi (Asal)</label>
                             <button type="button" onclick="showInfoDelegasi()" class="text-gray-400 hover:text-[#83218F] transition focus:outline-none">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                             </button>
                         </div>
-                        
-                        <input type="text" name="school_origin" value="{{ old('school_origin') }}" 
-                               class="block w-full rounded-xl border-gray-200 bg-gray-50 focus:bg-white focus:border-[#83218F] focus:ring-[#83218F] transition py-3 text-sm placeholder-gray-400" 
-                               placeholder="Contoh: PR IPNU Desa Limbangan / PK SMA 1" required>
-                        
-                        @error('school_origin') <span class="text-red-500 text-xs ml-1">{{ $message }}</span> @enderror
+
+                        <div class="relative mb-3">
+                            <select name="organization_id" x-model="delegasi" class="block w-full rounded-xl border-gray-200 bg-gray-50 focus:bg-white focus:border-[#83218F] focus:ring-[#83218F] transition py-3 px-4 text-sm appearance-none cursor-pointer" required>
+                                <option value="" disabled selected>-- Pilih Asal Delegasi --</option>
+                                
+                                <optgroup label="Internal - Pimpinan Ranting (PR)">
+                                    @foreach($organizations->where('type', 'PR') as $org)
+                                        <option value="{{ $org->id }}">{{ $org->name }}</option>
+                                    @endforeach
+                                </optgroup>
+
+                                <optgroup label="Internal - Pimpinan Komisariat (PK)">
+                                    @foreach($organizations->where('type', 'PK') as $org)
+                                        <option value="{{ $org->id }}">{{ $org->name }}</option>
+                                    @endforeach
+                                </optgroup>
+
+                                <option value="other" class="font-bold text-[#83218F]">+ Lainnya (Luar Kecamatan/Kota)</option>
+                            </select>
+                            
+                            <div class="absolute inset-y-0 right-0 flex items-center px-4 pointer-events-none text-gray-500">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                            </div>
+                        </div>
+                        @error('organization_id') <span class="text-red-500 text-xs ml-1 block mb-2">Wajib dipilih.</span> @enderror
+
+                        <div x-show="delegasi == 'other'" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 transform -translate-y-2" x-transition:enter-end="opacity-100 transform translate-y-0">
+                            <label class="block text-xs font-bold text-[#83218F] uppercase tracking-wide mb-1.5 ml-1">Nama Delegasi Manual</label>
+                            <input type="text" name="manual_delegation" value="{{ old('manual_delegation') }}" 
+                                   class="block w-full rounded-xl border-purple-200 bg-purple-50 focus:bg-white focus:border-[#83218F] focus:ring-[#83218F] transition py-3 text-sm placeholder-purple-300" 
+                                   placeholder="Contoh: PAC IPNU Garut Kota / PC IPNU Garut">
+                            <p class="text-[10px] text-gray-400 mt-1 ml-1">*Tuliskan nama lengkap organisasi asal Anda.</p>
+                            @error('manual_delegation') <span class="text-red-500 text-xs ml-1">{{ $message }}</span> @enderror
+                        </div>
                     </div>
 
                     <div class="bg-purple-50/50 p-5 rounded-2xl border border-purple-100 space-y-4">

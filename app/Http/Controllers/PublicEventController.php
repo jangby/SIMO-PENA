@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use App\Models\OrganizationStructure;
 use App\Models\SocialMedia; // <--- TAMBAHKAN INI
+use App\Models\Organization;
 
 class PublicEventController extends Controller
 {
@@ -59,46 +60,31 @@ class PublicEventController extends Controller
     // --- 3. FORMULIR PENDAFTARAN KEGIATAN ---
     public function showRegisterForm(Event $event)
     {
-        // Pastikan event masih buka, kalau tutup redirect ke home
         if ($event->status !== 'open') {
-            return redirect()->route('welcome')->with('error', 'Pendaftaran acara ini sudah ditutup.');
+            return redirect()->route('welcome')->with('error', 'Pendaftaran ditutup.');
         }
 
-        return view('public.register', compact('event'));
+        // Ambil data PR dan PK (Urutkan nama)
+        $organizations = Organization::whereIn('type', ['PR', 'PK'])->orderBy('type')->orderBy('name')->get();
+
+        return view('public.register', compact('event', 'organizations'));
     }
 
     // --- 4. PROSES SIMPAN PENDAFTARAN ---
     public function store(Request $request, Event $event)
     {
-        // --- 1. CEK DUPLIKAT (LOGIKA BARU) ---
-        // Cek apakah nomor ini sudah ada di event ini?
-        $existing = Registration::where('event_id', $event->id) // Event yang sama
-                                ->where('phone', $request->phone) // No WA yang sama
-                                ->whereIn('status', ['pending', 'approved']) // Status masih aktif
-                                ->first();
-
-        if ($existing) {
-            // Jika sudah ada, kembalikan ke form dengan pesan error
-            $statusMsg = $existing->status == 'approved' ? 'sudah terdaftar resmi' : 'sedang menunggu verifikasi';
-            
-            return back()
-                ->withInput() // Kembalikan isian form agar tidak ngetik ulang
-                ->withErrors(['phone' => "Nomor WhatsApp ini $statusMsg di acara ini!"]);
-        }
-        // -------------------------------------
-
         $isPaid = $event->price > 0;
 
-        // 2. Validasi Input
         $request->validate([
             'name' => 'required|string|max:255',
             'gender' => 'required|in:L,P',
             'birth_place' => 'required|string|max:100',
             'birth_date' => 'required|date',
             'phone' => 'required|numeric',
-            'school_origin' => 'required|string|max:255',
             
-            // Validasi Alamat Terpisah
+            // GANTI VALIDASI SEKOLAH MENJADI ORGANISASI ID
+            'organization_id' => 'required|exists:organizations,id',
+            
             'addr_street' => 'required|string',
             'addr_rt' => 'required|numeric',
             'addr_rw' => 'required|numeric',
@@ -111,21 +97,18 @@ class PublicEventController extends Controller
             'certificate_file' => $event->type == 'lakmud' ? 'required|image|mimes:jpeg,png,jpg,pdf|max:2048' : 'nullable',
         ]);
 
-        // 3. GABUNGKAN ALAMAT
+        // 1. Ambil Nama Organisasi untuk disimpan di kolom school_origin (agar sertifikat tetap jalan)
+        $org = Organization::find($request->organization_id);
+        $schoolOriginName = $org->name; 
+
+        // 2. Gabung Alamat
         $fullAddress = "{$request->addr_street}, RT {$request->addr_rt} / RW {$request->addr_rw}, Ds. {$request->addr_village}, Kec. {$request->addr_district}, Kab. {$request->addr_regency}, {$request->addr_postal}";
 
-        // 4. Upload File
-        $paymentPath = null;
-        if ($request->hasFile('payment_proof')) {
-            $paymentPath = $request->file('payment_proof')->store('payments', 'public');
-        }
+        // 3. Upload Files (Sama seperti sebelumnya)
+        $paymentPath = $request->hasFile('payment_proof') ? $request->file('payment_proof')->store('payments', 'public') : null;
+        $certPath = $request->hasFile('certificate_file') ? $request->file('certificate_file')->store('certificates', 'public') : null;
 
-        $certPath = null;
-        if ($request->hasFile('certificate_file')) {
-            $certPath = $request->file('certificate_file')->store('certificates', 'public');
-        }
-
-        // 5. Simpan ke Database
+        // 4. Simpan Database
         Registration::create([
             'event_id' => $event->id,
             'name' => $request->name,
@@ -133,7 +116,11 @@ class PublicEventController extends Controller
             'birth_place' => $request->birth_place,
             'birth_date' => $request->birth_date,
             'phone' => $request->phone,
-            'school_origin' => $request->school_origin,
+            
+            // SIMPAN DATA BARU
+            'organization_id' => $request->organization_id, 
+            'school_origin' => $schoolOriginName, // Tetap simpan stringnya untuk backup display
+            
             'address' => $fullAddress,
             'payment_proof' => $paymentPath,
             'certificate_file' => $certPath,

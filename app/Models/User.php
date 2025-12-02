@@ -25,6 +25,7 @@ class User extends Authenticatable
         'role',
         'is_active',     // Kolom status aktif
         'has_seen_tour', // Kolom status tour guide
+        'organization_id',
     ];
 
     /**
@@ -53,5 +54,10 @@ class User extends Authenticatable
     public function profile()
     {
         return $this->hasOne(Profile::class);
+    }
+
+    public function organization()
+    {
+        return $this->belongsTo(Organization::class);
     }
 }

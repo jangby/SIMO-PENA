@@ -12,10 +12,14 @@ class DatabaseSeeder extends Seeder
     {
         // Buat 1 Akun Super Admin
         User::create([
-            'name' => 'Super Admin IPNU',
+            'name' => 'Super Admin Pena Limbangan',
             'email' => 'admin@ipnu.com',
             'password' => Hash::make('password'), // Password admin
             'role' => 'admin',
+        ]);
+
+        $this->call([
+            OrganizationSeeder::class,
         ]);
 
         // Kita tidak perlu buat dummy user lain dulu

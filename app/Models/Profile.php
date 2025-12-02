@@ -18,4 +18,10 @@ class Profile extends Model
     {
         return $this->belongsTo(User::class);
     }
+
+    // Relasi ke Organisasi (Untuk Anggota)
+    public function organization()
+    {
+        return $this->belongsTo(Organization::class);
+    }
 }
