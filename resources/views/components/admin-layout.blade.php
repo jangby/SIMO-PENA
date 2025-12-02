@@ -107,6 +107,13 @@
                     <span class="ml-3 font-semibold text-sm whitespace-nowrap" x-show="sidebarOpen">Struktur Organisasi</span>
                 </a>
 
+                <a href="{{ route('admin.organizations.index') }}" 
+                   class="group flex items-center px-4 py-3 rounded-2xl transition-all duration-300 relative overflow-hidden
+                   {{ request()->routeIs('admin.organizations.*') ? 'bg-white/25 text-white shadow-lg border border-white/20 backdrop-blur-md' : 'text-purple-100 hover:bg-white/10 hover:text-white' }}">
+                    <svg class="w-5 h-5 flex-shrink-0 transition-transform duration-300 group-hover:scale-110" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
+                    <span class="ml-3 font-semibold text-sm whitespace-nowrap" x-show="sidebarOpen">Data Organisasi (PR/PK)</span>
+                </a>
+
                  <a href="{{ route('admin.events.index') }}" 
                    class="group flex items-center px-4 py-3 rounded-2xl transition-all duration-300 relative overflow-hidden
                    {{ request()->routeIs('admin.events.*') ? 'bg-white/25 text-white shadow-lg border border-white/20 backdrop-blur-md' : 'text-purple-100 hover:bg-white/10 hover:text-white' }}">

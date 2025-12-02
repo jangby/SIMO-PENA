@@ -7,6 +7,9 @@ use Illuminate\Database\Eloquent\Model;
 
 class OrganizationStructure extends Model
 {
+
+    protected $fillable = ['organization_id', 'name', 'position', 'level', 'photo', 'department', 'instagram_link'];
+
     use HasFactory;
     protected $guarded = ['id'];
 }

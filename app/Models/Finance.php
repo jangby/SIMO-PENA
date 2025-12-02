@@ -9,6 +9,8 @@ class Finance extends Model
     protected $guarded = ['id'];
     protected $casts = ['date' => 'date'];
 
+    protected $fillable = ['organization_id', 'type', 'amount', 'date', 'description', 'event_id'];
+
     public function event()
     {
         return $this->belongsTo(Event::class);

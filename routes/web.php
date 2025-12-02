@@ -106,6 +106,13 @@ Route::middleware(['auth', 'verified', 'admin'])->group(function () {
     Route::resource('/admin/letters', LetterController::class)->names('admin.letters');
     Route::resource('/admin/structures', StructureController::class)->names('admin.structures');
     Route::resource('/admin/socials', SocialMediaController::class)->only(['index', 'store', 'destroy'])->names('admin.socials');
+    Route::resource('/admin/organizations', \App\Http\Controllers\Admin\OrganizationController::class)->names('admin.organizations');
+
+    Route::prefix('admin/organizations/{organization}')->name('admin.organizations.')->group(function () {
+    Route::get('/accounts', [\App\Http\Controllers\Admin\OrganizationAccountController::class, 'index'])->name('accounts.index');
+    Route::post('/accounts', [\App\Http\Controllers\Admin\OrganizationAccountController::class, 'store'])->name('accounts.store');
+    Route::delete('/accounts/{user}', [\App\Http\Controllers\Admin\OrganizationAccountController::class, 'destroy'])->name('accounts.destroy');
+    });
 
     // Route Keuangan Lengkap
     Route::get('/admin/finances', [FinanceController::class, 'index'])->name('admin.finances.index');

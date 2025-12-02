@@ -4,24 +4,43 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Finance;
-use App\Exports\FinanceExport; // Nanti kita buat
+use App\Exports\FinanceExport;
 use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class FinanceController extends Controller
 {
     public function index()
     {
-        $finances = Finance::latest('date')->latest('id')->paginate(20);
+        $user = Auth::user();
+        $isPac = $user->organization_id == 1;
+
+        $query = Finance::latest('date')->latest('id');
+
+        // --- FILTER ---
+        if (!$isPac) {
+            $query->where('organization_id', $user->organization_id);
+        }
+
+        $finances = $query->paginate(20);
         
-        $totalIncome = Finance::where('type', 'income')->sum('amount');
-        $totalExpense = Finance::where('type', 'expense')->sum('amount');
+        // Hitung Saldo (Juga difilter)
+        $saldoQuery = Finance::query();
+        if (!$isPac) {
+            $saldoQuery->where('organization_id', $user->organization_id);
+        }
+
+        // PERBAIKAN: Menggunakan nama variabel 'totalIncome' & 'totalExpense' 
+        // agar sesuai dengan View 'admin.finances.index' kamu.
+        
+        $totalIncome = (clone $saldoQuery)->where('type', 'income')->sum('amount');
+        $totalExpense = (clone $saldoQuery)->where('type', 'expense')->sum('amount');
         $saldo = $totalIncome - $totalExpense;
 
         return view('admin.finances.index', compact('finances', 'totalIncome', 'totalExpense', 'saldo'));
     }
 
-    // --- FUNGSI BARU: SIMPAN TRANSAKSI MANUAL ---
     public function store(Request $request)
     {
         $request->validate([
@@ -36,21 +55,26 @@ class FinanceController extends Controller
             'amount' => $request->amount,
             'date' => $request->date,
             'description' => $request->description,
+            'organization_id' => Auth::user()->organization_id, // Simpan ID Organisasi
             // event_id null karena ini transaksi manual
         ]);
 
         return back()->with('success', 'Transaksi berhasil dicatat.');
     }
 
-    // --- FUNGSI BARU: EXPORT EXCEL ---
     public function export() 
     {
-        return Excel::download(new FinanceExport, 'laporan-keuangan-ipnu.xlsx');
+        // Note: Export class perlu disesuaikan juga nanti kalau mau support filter
+        return Excel::download(new FinanceExport, 'laporan-keuangan.xlsx');
     }
 
-    // --- FUNGSI HAPUS (Jaga-jaga salah input) ---
     public function destroy(Finance $finance)
     {
+        $user = Auth::user();
+        if ($user->organization_id != 1 && $finance->organization_id != $user->organization_id) {
+            abort(403, 'Anda tidak berhak menghapus data keuangan ini.');
+        }
+
         $finance->delete();
         return back()->with('success', 'Transaksi dihapus.');
     }
