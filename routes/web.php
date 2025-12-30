@@ -40,9 +40,15 @@ Route::get('/struktur-organisasi', [PublicEventController::class, 'structure'])-
 |--------------------------------------------------------------------------
 */
 Route::get('/dashboard', function () {
-    if (auth()->user()->role === 'admin') {
+    $role = auth()->user()->role;
+    
+    if ($role === 'admin') {
         return redirect()->route('admin.dashboard');
+    } 
+    elseif ($role === 'panitia') {
+        return redirect()->route('panitia.dashboard'); // Redirect Panitia
     }
+    
     return view('dashboard');
 })->middleware(['auth', 'verified'])->name('dashboard');
 
@@ -141,6 +147,10 @@ Route::middleware(['auth', 'verified', 'admin'])->group(function () {
         'destroy' => 'admin.events.destroy',
     ]);
 
+    Route::resource('/admin/panitia', \App\Http\Controllers\Admin\PanitiaAccountController::class)
+        ->names('admin.panitia')
+        ->except(['show', 'edit', 'update']);
+
     // C. Sub-Menu Event (Participants, Schedules, Attendance)
     // Prefix ini otomatis menambahkan '/admin/events/{event}' ke semua URL di bawahnya
     Route::prefix('admin/events/{event}')->name('admin.events.')->group(function () {
@@ -148,7 +158,11 @@ Route::middleware(['auth', 'verified', 'admin'])->group(function () {
         // Data Peserta
         Route::get('/participants', [EventManagementController::class, 'participants'])->name('participants');
         Route::get('/participants/export', [EventManagementController::class, 'exportExcel'])->name('participants.export');
-        Route::get('/print-idcards', [EventManagementController::class, 'printAllIdCards'])->name('print.idcards');
+        // 1. Ganti route cetak massal lama ke halaman view QR Code
+Route::get('/qr-codes', [EventManagementController::class, 'showQrCodes'])->name('qr.codes');
+
+// 2. Tambahkan route untuk download QR Code spesifik (PNG)
+Route::get('/qr-codes/{registration}/download', [EventManagementController::class, 'downloadQrCode'])->name('qr.download');
         
         // Jadwal (Rundown)
         Route::get('/schedules', [EventManagementController::class, 'schedules'])->name('schedules');
@@ -165,6 +179,35 @@ Route::middleware(['auth', 'verified', 'admin'])->group(function () {
         Route::get('/certificates', [EventManagementController::class, 'certificates'])->name('certificates');
         Route::post('/certificates/{registration}', [EventManagementController::class, 'storeCertificate'])->name('certificates.store');
     });
+});
+
+/*
+|--------------------------------------------------------------------------
+| PANITIA ROUTES (Mobile App)
+|--------------------------------------------------------------------------
+*/
+Route::middleware(['auth', 'verified', 'panitia'])->prefix('panitia')->name('panitia.')->group(function () {
+    
+    Route::get('/dashboard', [\App\Http\Controllers\Panitia\MobileController::class, 'index'])->name('dashboard');
+    Route::get('/scan', [\App\Http\Controllers\Panitia\MobileController::class, 'scan'])->name('scan');
+    Route::get('/attendance', [\App\Http\Controllers\Panitia\MobileController::class, 'attendance'])->name('attendance');
+
+    Route::prefix('event/{id}')->group(function() {
+        Route::get('/', [\App\Http\Controllers\Panitia\MobileController::class, 'show'])->name('event.show');
+        Route::get('/participants', [\App\Http\Controllers\Panitia\MobileController::class, 'participants'])->name('event.participants');
+        Route::get('/schedules', [\App\Http\Controllers\Panitia\MobileController::class, 'schedules'])->name('event.schedules');
+    });
+    
+    Route::post('/scan-process', [\App\Http\Controllers\Admin\EventManagementController::class, 'scanQr'])->name('scan.process');
+
+    Route::get('/event/{id}/export-pdf', [\App\Http\Controllers\Panitia\MobileController::class, 'exportPdf'])->name('event.export_pdf');
+
+});
+
+// ===> ROUTE YANG ERROR KEMARIN (Letakkan di sini) <===
+Route::middleware(['auth', 'verified', 'panitia'])->group(function () {
+    Route::get('/panitia/schedule/{id}/export-pdf', [\App\Http\Controllers\Panitia\MobileController::class, 'exportSchedulePdf'])
+        ->name('schedule.export_pdf');
 });
 
 require __DIR__.'/auth.php';

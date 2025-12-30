@@ -13,6 +13,7 @@ use Barryvdh\DomPDF\Facade\Pdf;
 use Picqer\Barcode\BarcodeGeneratorPNG;
 use App\Models\User;    
 use App\Models\Profile;
+use SimpleSoftwareIO\QrCode\Facades\QrCode;
 
 class EventManagementController extends Controller
 {
@@ -102,54 +103,99 @@ class EventManagementController extends Controller
     }
 
     // --- FITUR SCAN QR (AJAX) ---
-    public function scanQr(Request $request, Event $event)
+    public function scanQr(Request $request)
     {
-        // 1. Validasi Input (ID Pendaftaran)
-        $registrationId = $request->registration_id;
-        
-        $registration = Registration::find($registrationId);
+        $request->validate([
+            'qrcode' => 'required',
+            'mode' => 'required',
+            'event_id' => 'required' // Pastikan event_id dikirim dari frontend
+        ]);
 
-        // 2. Cek apakah data ada?
+        $qrContent = $request->qrcode;
+        $eventId = $request->event_id;
+
+        // --- LOGIKA PENCARIAN CERDAS ---
+        
+        // OPSI 1: Coba cari anggap QR Code adalah 'Registration ID' (Default Sistem)
+        $registration = Registration::where('id', $qrContent)
+                                    ->where('event_id', $eventId) // Pastikan milik event ini
+                                    ->first();
+
+        // OPSI 2: Jika tidak ketemu, cari anggap QR Code adalah 'User ID' (Sesuai kasus kamu)
+        if (!$registration) {
+            $registration = Registration::where('user_id', $qrContent)
+                                        ->where('event_id', $eventId)
+                                        ->first();
+        }
+
+        // --- VALIDASI HASIL ---
+
+        // 1. Jika data tetap tidak ditemukan
         if (!$registration) {
             return response()->json([
-                'status' => 'error',
-                'message' => 'Data QR Code tidak valid / tidak ditemukan.'
+                'message' => 'Data peserta tidak ditemukan di event ini.'
             ], 404);
         }
 
-        // 3. Cek apakah QR ini milik Event yang sedang dibuka?
-        if ($registration->event_id != $event->id) {
+        // 2. Jika status belum disetujui
+        if ($registration->status !== 'approved') {
             return response()->json([
-                'status' => 'error',
-                'message' => 'Peserta ini terdaftar untuk event lain, bukan event ini.'
+                'message' => 'Status pendaftaran peserta belum disetujui.'
             ], 400);
         }
 
-        // 4. Cek apakah statusnya Approved?
-        if ($registration->status != 'approved') {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Peserta ini belum lunas/disetujui admin.'
-            ], 400);
-        }
+        // --- PROSES ABSENSI ---
 
-        // 5. Cek apakah sudah absen sebelumnya?
-        if ($registration->presence_at) {
+        if ($request->mode === 'checkin') {
+            // MODE: DAFTAR ULANG
+            if ($registration->presence_at) {
+                return response()->json(['message' => 'Peserta sudah check-in sebelumnya.'], 400);
+            }
+            
+            $registration->update(['presence_at' => now()]);
+            
             return response()->json([
-                'status' => 'warning',
-                'message' => 'Peserta atas nama ' . $registration->name . ' SUDAH absen sebelumnya.'
+                'status' => 'success',
+                'name' => $registration->name,
+                'school' => $registration->school_origin,
+                'type' => 'Daftar Ulang'
+            ]);
+
+        } else {
+            // MODE: ABSENSI MATERI
+            $scheduleId = $request->mode;
+            
+            // Cek apakah jadwal ini benar milik event ini (Validasi keamanan)
+            $validSchedule = \App\Models\EventSchedule::where('id', $scheduleId)
+                                ->where('event_id', $eventId)
+                                ->exists();
+                                
+            if(!$validSchedule) {
+                return response()->json(['message' => 'Jadwal tidak valid untuk event ini.'], 400);
+            }
+
+            // Cek duplikasi absen materi
+            $exists = \App\Models\ScheduleAttendance::where('registration_id', $registration->id)
+                        ->where('event_schedule_id', $scheduleId)
+                        ->exists();
+
+            if ($exists) {
+                return response()->json(['message' => 'Peserta sudah absen di sesi ini.'], 400);
+            }
+
+            \App\Models\ScheduleAttendance::create([
+                'registration_id' => $registration->id,
+                'event_schedule_id' => $scheduleId,
+                'scanned_at' => now()
+            ]);
+
+            return response()->json([
+                'status' => 'success',
+                'name' => $registration->name,
+                'school' => $registration->school_origin,
+                'type' => 'Materi'
             ]);
         }
-
-        // 6. SUKSES: Catat Kehadiran
-        $registration->update(['presence_at' => now()]);
-
-        return response()->json([
-            'status' => 'success',
-            'message' => 'Berhasil! ' . $registration->name . ' telah hadir.',
-            'user_name' => $registration->name,
-            'time' => now()->format('H:i')
-        ]);
     }
 
     public function exportExcel(Event $event)
@@ -230,5 +276,37 @@ public function printAllIdCards(Event $event)
         $registration->update(['certificate_file' => $path]);
 
         return back()->with('success', 'Sertifikat untuk ' . $registration->name . ' berhasil diupload.');
+    }
+
+    // --- HALAMAN 4: LIHAT QR CODE & DATA ---
+    public function showQrCodes(Event $event)
+    {
+        // Ambil peserta yang sudah Approved
+        $participants = $event->registrations()
+                        ->where('status', 'approved')
+                        ->orderBy('name')
+                        ->get();
+
+        return view('admin.events.qr_codes', compact('event', 'participants'));
+    }
+
+    // --- AKSI DOWNLOAD QR CODE (PNG) ---
+    public function downloadQrCode(Event $event, Registration $registration)
+    {
+        $content = $registration->id; 
+
+        // UBAH DI SINI: Ganti 'png' jadi 'svg'
+        // SVG tidak butuh Imagick, dan hasilnya lebih tajam (vektor)
+        $qrCode = QrCode::format('svg')->size(500)->margin(1)->generate($content);
+
+        $safeName = preg_replace('/[^A-Za-z0-9 ]/', '', $registration->name);
+        $safeDelegation = preg_replace('/[^A-Za-z0-9 ]/', '', $registration->school_origin);
+        
+        // Ganti ekstensi nama file jadi .svg
+        $fileName = "{$safeName} - {$safeDelegation}.svg";
+
+        return response($qrCode)
+            ->header('Content-Type', 'image/svg+xml') // Header untuk SVG
+            ->header('Content-Disposition', 'attachment; filename="' . $fileName . '"');
     }
 }
