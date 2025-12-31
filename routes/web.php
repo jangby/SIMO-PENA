@@ -19,6 +19,7 @@ use App\Http\Controllers\Member\MyEventController;
 use App\Http\Controllers\Member\ArticleController as MemberArticleController;
 use App\Http\Controllers\Member\AttendanceController;
 use App\Http\Controllers\TourController;
+use App\Http\Controllers\PendaftaranController;
 
 /*
 |--------------------------------------------------------------------------
@@ -158,6 +159,9 @@ Route::middleware(['auth', 'verified', 'admin'])->group(function () {
         // Data Peserta
         Route::get('/participants', [EventManagementController::class, 'participants'])->name('participants');
         Route::get('/participants/export', [EventManagementController::class, 'exportExcel'])->name('participants.export');
+
+        Route::post('/participants/store', [EventManagementController::class, 'storeParticipant'])
+        ->name('participants.store');
         // 1. Ganti route cetak massal lama ke halaman view QR Code
 Route::get('/qr-codes', [EventManagementController::class, 'showQrCodes'])->name('qr.codes');
 

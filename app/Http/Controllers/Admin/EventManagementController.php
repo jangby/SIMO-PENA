@@ -14,6 +14,11 @@ use Picqer\Barcode\BarcodeGeneratorPNG;
 use App\Models\User;    
 use App\Models\Profile;
 use SimpleSoftwareIO\QrCode\Facades\QrCode;
+use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
+use App\Services\WahaService;
 
 class EventManagementController extends Controller
 {
@@ -308,5 +313,131 @@ public function printAllIdCards(Event $event)
         return response($qrCode)
             ->header('Content-Type', 'image/svg+xml') // Header untuk SVG
             ->header('Content-Disposition', 'attachment; filename="' . $fileName . '"');
+    }
+
+    public function storeParticipant(Request $request, Event $event)
+    {
+        // 1. Validasi Input
+        $request->validate([
+            'name'          => 'required|string|max:255',
+            'email'         => 'required|email|max:255',
+            'phone'         => 'required|numeric',
+            'gender'        => 'required|in:L,P',
+            'birth_place'   => 'required|string',
+            'birth_date'    => 'required|date',
+            'school_origin' => 'required|string',
+            'address'       => 'required|string',
+        ]);
+
+        return DB::transaction(function () use ($request, $event) {
+            // A. Cek / Buat User & Profile
+            $user = User::where('email', $request->email)->first();
+            $generatedPassword = null;
+            $isNewUser = false;
+
+            if (!$user) {
+                // User Baru
+                $isNewUser = true;
+                $generatedPassword = Str::random(8); 
+
+                $user = User::create([
+                    'name'      => $request->name,
+                    'email'     => $request->email,
+                    'password'  => Hash::make($generatedPassword),
+                    'role'      => 'member',
+                    'is_active' => true,
+                ]);
+
+                // Profile Baru
+                $user->profile()->create([
+                    'phone'       => $request->phone,
+                    'gender'      => $request->gender,
+                    'birth_place' => $request->birth_place,
+                    'birth_date'  => $request->birth_date,
+                    'grade'       => 'calon',
+                ]);
+            } else {
+                // User Lama: Update Profile
+                $user->profile()->updateOrCreate(
+                    ['user_id' => $user->id],
+                    [
+                        'phone'       => $request->phone,
+                        'gender'      => $request->gender,
+                        'birth_place' => $request->birth_place,
+                        'birth_date'  => $request->birth_date,
+                    ]
+                );
+            }
+
+            // B. Cek Duplikat
+            $existingRegistration = Registration::where('user_id', $user->id)
+                                    ->where('event_id', $event->id)
+                                    ->first();
+
+            if ($existingRegistration) {
+                return back()->with('error', 'Peserta dengan email ini sudah terdaftar.');
+            }
+
+            // C. Simpan Pendaftaran
+            Registration::create([
+                'event_id'       => $event->id,
+                'user_id'        => $user->id,
+                'name'           => $request->name,
+                'email'          => $request->email,
+                'phone'          => $request->phone,
+                'gender'         => $request->gender,
+                'birth_place'    => $request->birth_place,
+                'birth_date'     => $request->birth_date,
+                'school_origin'  => $request->school_origin,
+                'address'        => $request->address,
+                'status'         => 'approved',
+                'payment_status' => 'paid',
+                'payment_proof'  => 'OFFLINE_CASH',
+            ]);
+
+            // D. Kirim Notifikasi WhatsApp (YANG LEBIH BAGUS)
+            try {
+                $waha = new WahaService();
+                $sapaan = ($request->gender == 'L') ? 'Rekan' : 'Rekanita';
+                $loginUrl = route('login'); // Otomatis ambil link login
+                
+                if ($isNewUser) {
+                    // --- PESAN UNTUK PENGGUNA BARU ---
+                    $msg  = "*PENDAFTARAN OFFLINE BERHASIL* ✅\n\n";
+                    $msg .= "Halo $sapaan *{$request->name}*,\n";
+                    $msg .= "Admin telah mendaftarkan Anda secara manual pada kegiatan:\n\n";
+                    $msg .= "📅 *{$event->title}*\n";
+                    $msg .= "📍 {$event->location}\n\n";
+                    $msg .= "Berikut adalah akses akun Anda untuk masuk ke sistem:\n";
+                    $msg .= "----------------------------------\n";
+                    $msg .= "🔗 *Login:* $loginUrl\n";
+                    $msg .= "📧 *Email:* {$request->email}\n";
+                    $msg .= "🔑 *Password:* {$generatedPassword}\n";
+                    $msg .= "----------------------------------\n\n";
+                    $msg .= "⚠️ *PENTING:*\n";
+                    $msg .= "Demi keamanan, mohon *SEGERA GANTI PASSWORD* Anda setelah berhasil login melalui menu Profil.\n\n";
+                    $msg .= "Tiket & ID Card dapat diminta ke Panitia.\n\n";
+                    $msg .= "_Terima Kasih,_ \n*Panitia Pelaksana*";
+                    
+                    $waha->sendText($request->phone, $msg);
+                } else {
+                    // --- PESAN UNTUK PENGGUNA LAMA ---
+                    $msg  = "*PENDAFTARAN OFFLINE BERHASIL* ✅\n\n";
+                    $msg .= "Halo $sapaan *{$request->name}*,\n";
+                    $msg .= "Pendaftaran susulan (manual) Anda berhasil diproses oleh Admin untuk kegiatan:\n\n";
+                    $msg .= "📅 *{$event->title}*\n";
+                    $msg .= "📍 {$event->location}\n\n";
+                    $msg .= "Silakan login untuk melihat tiket dan jadwal terbaru.\n\n";
+                    $msg .= "🔗 *Akses:* $loginUrl\n\n";
+                    $msg .= "_Terima Kasih,_ \n*Panitia Pelaksana*";
+                    
+                    $waha->sendText($request->phone, $msg);
+                }
+            } catch (\Exception $e) {
+                // Error WA diabaikan agar data tetap tersimpan
+            }
+
+            return back()->with('success', 'Peserta Offline berhasil didaftarkan & Notifikasi dikirim!');
+        });
     }
 }
