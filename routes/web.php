@@ -211,27 +211,27 @@ Route::middleware(['auth', 'verified', 'panitia'])->prefix('panitia')->name('pan
 });
 
 
-// File: routes/web.php (Paling Bawah)
+// --- TEMPEL DI PALING BAWAH FILE routes/web.php ---
 
-Route::get('/fix-gender-data', function() {
-    // Ambil semua pendaftaran
+Route::get('/fix-gender-sync', function() {
+    // 1. Ambil semua data pendaftaran
     $registrations = \App\Models\Registration::all();
-    $count = 0;
+    $updatedCount = 0;
 
     foreach($registrations as $reg) {
-        // Cari User & Profile pasangannya
-        $user = \App\Models\User::find($reg->user_id);
-        
-        if ($user && $user->profile) {
-            // Update gender di tabel registration sesuai data di profile
+        // 2. Cari Data Profil aslinya berdasarkan user_id
+        $profile = \App\Models\Profile::where('user_id', $reg->user_id)->first();
+
+        if ($profile) {
+            // 3. Paksa ubah gender di pendaftaran agar SAMA dengan gender di profil
             $reg->update([
-                'gender' => $user->profile->gender
+                'gender' => $profile->gender
             ]);
-            $count++;
+            $updatedCount++;
         }
     }
 
-    return "Berhasil memperbaiki data gender untuk $count peserta. Silakan hapus route ini.";
+    return "BERHASIL! $updatedCount data peserta event telah disinkronkan gendernya sesuai Data Anggota.";
 });
 
 require __DIR__.'/auth.php';
