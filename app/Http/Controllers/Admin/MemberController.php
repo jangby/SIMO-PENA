@@ -4,10 +4,12 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Models\Registration; // <--- TAMBAHAN PENTING
 use Illuminate\Http\Request;
 use App\Exports\MembersExport;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Services\WahaService;
+use Illuminate\Support\Facades\DB; // <--- TAMBAHAN UNTUK TRANSACTION
 
 class MemberController extends Controller
 {
@@ -18,7 +20,7 @@ class MemberController extends Controller
         // Query Dasar
         $query = User::where('role', 'member')->with('profile');
 
-        // 1. FILTER GRADE (Sama seperti sebelumnya)
+        // Filter Grade
         if ($grade == 'sampah') {
             $query->onlyTrashed();
         } elseif ($grade == 'alumni') {
@@ -31,14 +33,14 @@ class MemberController extends Controller
             });
         }
 
-        // 2. --- TAMBAHAN FILTER GENDER ---
+        // Filter Gender
         if ($request->has('gender') && $request->gender != '') {
             $query->whereHas('profile', function($q) use ($request) {
                 $q->where('gender', $request->gender);
             });
         }
 
-        // 3. PENCARIAN (Sama seperti sebelumnya)
+        // Pencarian
         if ($request->has('search')) {
             $search = $request->search;
             $query->where(function($q) use ($search) {
@@ -55,19 +57,18 @@ class MemberController extends Controller
         return view('admin.members.index', compact('members', 'grade'));
     }
 
-    // --- TAMBAHAN: EDIT & UPDATE ---
-
     public function edit(User $user)
     {
         return view('admin.members.edit', compact('user'));
     }
 
+    // --- PERBAIKAN UTAMA DI SINI ---
     public function update(Request $request, User $user)
     {
-        // Validasi
+        // 1. Validasi
         $request->validate([
             'name' => 'required|string|max:255',
-            'email' => 'required|email|max:255|unique:users,email,'.$user->id, // Abaikan email sendiri saat cek unik
+            'email' => 'required|email|max:255|unique:users,email,'.$user->id,
             'phone' => 'required|numeric',
             'grade' => 'required|string',
             'school_origin' => 'required|string',
@@ -77,53 +78,66 @@ class MemberController extends Controller
             'nia_ipnu' => 'nullable|string',
         ]);
 
-        // Update Data User (Akun Login)
-        $user->update([
-            'name' => $request->name,
-            'email' => $request->email,
-        ]);
+        // Gunakan Transaction agar aman
+        DB::transaction(function () use ($request, $user) {
+            
+            // A. Update Data User (Akun Login)
+            $user->update([
+                'name' => $request->name,
+                'email' => $request->email,
+            ]);
 
-        // Update Data Profile (Biodata)
-        $user->profile()->updateOrCreate(
-            ['user_id' => $user->id], // Kunci pencarian
-            [
-                'phone' => $request->phone,
-                'grade' => $request->grade,
+            // B. Update Data Profile (Biodata)
+            $user->profile()->updateOrCreate(
+                ['user_id' => $user->id],
+                [
+                    'phone' => $request->phone,
+                    'grade' => $request->grade,
+                    'school_origin' => $request->school_origin,
+                    'gender' => $request->gender,
+                    'birth_place' => $request->birth_place,
+                    'birth_date' => $request->birth_date,
+                    'nia_ipnu' => $request->nia_ipnu,
+                ]
+            );
+
+            // C. UPDATE DATA DI TABEL REGISTRATIONS (Sinkronisasi)
+            // Ini akan mengupdate semua data event yang pernah diikuti user ini
+            // agar namanya, sekolahnya, dan gendernya sesuai dengan data terbaru.
+            Registration::where('user_id', $user->id)->update([
+                'name'          => $request->name,
+                'phone'         => $request->phone,
                 'school_origin' => $request->school_origin,
-                'gender' => $request->gender,
-                'birth_place' => $request->birth_place,
-                'birth_date' => $request->birth_date,
-                'nia_ipnu' => $request->nia_ipnu,
-            ]
-        );
+                'gender'        => $request->gender,       // Penting untuk filter IPNU/IPPNU
+                'birth_place'   => $request->birth_place,
+                'birth_date'    => $request->birth_date,
+            ]);
 
-        return redirect()->route('admin.members.index')->with('success', 'Data anggota berhasil diperbarui.');
+        });
+
+        return redirect()->route('admin.members.index')->with('success', 'Data anggota (dan riwayat pendaftarannya) berhasil diperbarui.');
     }
 
-    // --- FUNGSI BARU ---
+    // --- FUNGSI LAINNYA TETAP SAMA ---
 
-    // 1. Nonaktifkan (Banned)
     public function deactivate(User $user)
     {
         $user->update(['is_active' => false]);
         return back()->with('success', 'Akun dinonaktifkan. User tidak bisa login.');
     }
 
-    // 2. Luluskan (Jadi Alumni)
     public function graduate(User $user)
     {
         $user->profile()->update(['grade' => 'alumni']);
         return back()->with('success', 'Anggota dinyatakan LULUS dan menjadi Alumni.');
     }
 
-    // 3. Hapus Sementara (Soft Delete -> Masuk Tong Sampah)
     public function destroy(User $user)
     {
-        $user->delete(); // Ini tidak menghapus permanen, cuma mengisi deleted_at
+        $user->delete();
         return back()->with('success', 'Data dipindahkan ke Sampah.');
     }
 
-    // 4. Restore (Kembalikan dari Sampah)
     public function restore($id)
     {
         $user = User::onlyTrashed()->findOrFail($id);
@@ -131,11 +145,10 @@ class MemberController extends Controller
         return back()->with('success', 'Data berhasil dipulihkan.');
     }
     
-    // 5. Hapus Permanen (Opsional, jika ingin benar-benar menghapus)
     public function forceDelete($id)
     {
         $user = User::onlyTrashed()->findOrFail($id);
-        $user->forceDelete(); // Hilang selamanya
+        $user->forceDelete();
         return back()->with('success', 'Data dihapus permanen.');
     }
 
@@ -144,32 +157,25 @@ class MemberController extends Controller
         return view('admin.members.show', compact('user'));
     }
 
-    // FITUR EXPORT EXCEL
     public function export() 
     {
         return Excel::download(new MembersExport, 'data-anggota-ipnu.xlsx');
     }
 
     public function activate(User $user, WahaService $waha)
-{
-    // Aktifkan User
-    $user->update(['is_active' => true]);
+    {
+        $user->update(['is_active' => true]);
 
-    // Ubah grade jadi Anggota (jika masih calon)
-    // Atau biarkan calon dulu sampai ikut makesta? Terserah kebijakan.
-    // Disini kita biarkan grade sesuai data, cuma aktifkan loginnya.
+        if ($user->profile && $user->profile->phone) {
+            $message = "*AKUN DIAKTIFKAN* ✅\n\n"
+                     . "Halo rekan/ita *{$user->name}*,\n"
+                     . "Akun Anda di Portal PAC IPNU Limbangan telah diverifikasi dan DIAKTIFKAN oleh Admin.\n\n"
+                     . "Sekarang Anda sudah bisa login.\n"
+                     . "Link: " . route('login');
 
-    // Kirim WA Notifikasi
-    if ($user->profile && $user->profile->phone) {
-        $message = "*AKUN DIAKTIFKAN* ✅\n\n"
-                 . "Halo rekan/ita *{$user->name}*,\n"
-                 . "Akun Anda di Portal PAC IPNU Limbangan telah diverifikasi dan DIAKTIFKAN oleh Admin.\n\n"
-                 . "Sekarang Anda sudah bisa login untuk mendaftar kegiatan atau melengkapi biodata.\n"
-                 . "Link Login: " . route('login');
+            $waha->sendText($user->profile->phone, $message);
+        }
 
-        $waha->sendText($user->profile->phone, $message);
+        return back()->with('success', 'Akun berhasil diaktifkan.');
     }
-
-    return back()->with('success', 'Akun berhasil diaktifkan & notifikasi terkirim.');
-}
 }

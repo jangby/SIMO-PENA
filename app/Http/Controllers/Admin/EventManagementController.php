@@ -196,15 +196,16 @@ class EventManagementController extends Controller
     // --- HALAMAN 1: DATA PESERTA (UPDATE FILTER) ---
     public function participants(Request $request, Event $event)
     {
-        // Mulai Query
+        // 1. Mulai Query
         $query = $event->registrations()
-                       ->where('status', 'approved');
+                        ->where('status', 'approved');
 
-        // Filter: Jika ada request 'gender' (L/P)
+        // 2. Tambahkan Logika Filter Gender
         if ($request->has('gender') && $request->gender != '') {
             $query->where('gender', $request->gender);
         }
 
+        // 3. Ambil Data
         $participants = $query->latest()->get();
 
         return view('admin.events.participants', compact('event', 'participants'));
@@ -310,12 +311,12 @@ public function printAllIdCards(Event $event)
                         ->where('status', 'approved')
                         ->orderBy('name');
 
-        // 2. Cek Filter Gender
+        // 2. Tambahkan Logika Filter Gender
         if ($request->has('gender') && $request->gender != '') {
             $query->where('gender', $request->gender);
         }
 
-        // 3. Eksekusi
+        // 3. Ambil Data
         $participants = $query->get();
 
         return view('admin.events.qr_codes', compact('event', 'participants'));
