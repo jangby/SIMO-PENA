@@ -13,29 +13,32 @@ class MemberController extends Controller
 {
     public function index(Request $request)
     {
-        // Ambil filter grade dari URL
         $grade = $request->query('grade', 'anggota'); 
 
         // Query Dasar
         $query = User::where('role', 'member')->with('profile');
 
-        // --- FILTER LOGIC ---
+        // 1. FILTER GRADE (Sama seperti sebelumnya)
         if ($grade == 'sampah') {
-            // Khusus Tab Sampah: Tampilkan yang sudah dihapus (Soft Deleted)
             $query->onlyTrashed();
         } elseif ($grade == 'alumni') {
-            // Khusus Alumni
             $query->whereHas('profile', function($q) {
                 $q->where('grade', 'alumni');
             });
         } else {
-            // Filter Biasa (Calon, Anggota, Kader)
             $query->whereHas('profile', function($q) use ($grade) {
                 $q->where('grade', $grade);
             });
         }
 
-        // Logika Pencarian (Tetap Sama)
+        // 2. --- TAMBAHAN FILTER GENDER ---
+        if ($request->has('gender') && $request->gender != '') {
+            $query->whereHas('profile', function($q) use ($request) {
+                $q->where('gender', $request->gender);
+            });
+        }
+
+        // 3. PENCARIAN (Sama seperti sebelumnya)
         if ($request->has('search')) {
             $search = $request->search;
             $query->where(function($q) use ($search) {
@@ -50,6 +53,51 @@ class MemberController extends Controller
         $members = $query->latest()->paginate(10);
         
         return view('admin.members.index', compact('members', 'grade'));
+    }
+
+    // --- TAMBAHAN: EDIT & UPDATE ---
+
+    public function edit(User $user)
+    {
+        return view('admin.members.edit', compact('user'));
+    }
+
+    public function update(Request $request, User $user)
+    {
+        // Validasi
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|max:255|unique:users,email,'.$user->id, // Abaikan email sendiri saat cek unik
+            'phone' => 'required|numeric',
+            'grade' => 'required|string',
+            'school_origin' => 'required|string',
+            'gender' => 'required|in:L,P',
+            'birth_place' => 'nullable|string',
+            'birth_date' => 'nullable|date',
+            'nia_ipnu' => 'nullable|string',
+        ]);
+
+        // Update Data User (Akun Login)
+        $user->update([
+            'name' => $request->name,
+            'email' => $request->email,
+        ]);
+
+        // Update Data Profile (Biodata)
+        $user->profile()->updateOrCreate(
+            ['user_id' => $user->id], // Kunci pencarian
+            [
+                'phone' => $request->phone,
+                'grade' => $request->grade,
+                'school_origin' => $request->school_origin,
+                'gender' => $request->gender,
+                'birth_place' => $request->birth_place,
+                'birth_date' => $request->birth_date,
+                'nia_ipnu' => $request->nia_ipnu,
+            ]
+        );
+
+        return redirect()->route('admin.members.index')->with('success', 'Data anggota berhasil diperbarui.');
     }
 
     // --- FUNGSI BARU ---

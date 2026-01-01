@@ -97,6 +97,8 @@ Route::middleware(['auth', 'verified', 'admin'])->group(function () {
     // 1. Data Anggota
     Route::get('/admin/members/export', [MemberController::class, 'export'])->name('admin.members.export');
     Route::get('/admin/members', [MemberController::class, 'index'])->name('admin.members.index');
+    Route::get('/admin/members/{user}/edit', [MemberController::class, 'edit'])->name('admin.members.edit');
+    Route::put('/admin/members/{user}', [MemberController::class, 'update'])->name('admin.members.update');
     Route::get('/admin/members/{user}', [MemberController::class, 'show'])->name('admin.members.show');
 
     // 2. Pendaftaran Masuk

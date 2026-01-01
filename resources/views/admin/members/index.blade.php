@@ -49,10 +49,16 @@
             
             <div class="bg-white p-4 rounded-2xl shadow-sm mb-6 flex flex-col md:flex-row justify-between items-center gap-4 border border-gray-100">
                 
-                <form action="{{ route('admin.members.index') }}" method="GET" class="w-full md:w-1/2 relative">
+                <form action="{{ route('admin.members.index') }}" method="GET" class="w-full md:w-2/3 flex flex-col md:flex-row gap-2">
                     <input type="hidden" name="grade" value="{{ $grade }}">
                     
-                    <div class="relative">
+                    <select name="gender" onchange="this.form.submit()" class="border-gray-200 rounded-xl focus:ring-[#83218F] focus:border-[#83218F] text-sm bg-gray-50 text-gray-700 min-w-[150px]">
+                        <option value="">- Semua Gender -</option>
+                        <option value="L" {{ request('gender') == 'L' ? 'selected' : '' }}>Laki-laki (IPNU)</option>
+                        <option value="P" {{ request('gender') == 'P' ? 'selected' : '' }}>Perempuan (IPPNU)</option>
+                    </select>
+
+                    <div class="relative w-full">
                         <input type="text" name="search" value="{{ request('search') }}" 
                                placeholder="Cari nama, email, atau sekolah..." 
                                class="w-full pl-11 pr-4 py-2.5 border-gray-200 rounded-xl focus:ring-[#83218F] focus:border-[#83218F] text-sm bg-gray-50 hover:bg-white transition">
@@ -98,6 +104,11 @@
                                             <div>
                                                 <div class="font-bold text-gray-900 group-hover:text-[#83218F] transition">{{ $member->name }}</div>
                                                 <div class="text-xs text-gray-400">{{ $member->email }}</div>
+                                                @if($member->profile && $member->profile->gender == 'L')
+                                                    <span class="text-[9px] bg-blue-100 text-blue-700 px-1.5 rounded">IPNU</span>
+                                                @elseif($member->profile && $member->profile->gender == 'P')
+                                                    <span class="text-[9px] bg-pink-100 text-pink-700 px-1.5 rounded">IPPNU</span>
+                                                @endif
                                             </div>
                                         </div>
                                     </td>
@@ -148,6 +159,15 @@
                                                 </form>
                                             
                                             @else
+                                                
+                                                <a href="{{ route('admin.members.edit', $member->id) }}" class="bg-orange-50 text-orange-600 p-2 rounded-lg hover:bg-orange-100 transition border border-orange-200" title="Edit Data">
+                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                                                </a>
+
+                                                <a href="{{ route('admin.members.show', $member->id) }}" class="bg-white border border-gray-200 text-gray-600 p-2 rounded-lg hover:border-[#83218F] hover:text-[#83218F] transition" title="Detail">
+                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
+                                                </a>
+
                                                 @if(!$member->is_active)
                                                     <form action="{{ route('admin.members.activate', $member->id) }}" method="POST">
                                                         @csrf @method('PATCH')
@@ -155,9 +175,7 @@
                                                             Aktifkan
                                                         </button>
                                                     </form>
-                                                @endif
-
-                                                @if($member->is_active)
+                                                @else
                                                     <form action="{{ route('admin.members.deactivate', $member->id) }}" method="POST" onsubmit="return confirm('Nonaktifkan (Ban) akun ini?')">
                                                         @csrf @method('PATCH')
                                                         <button type="submit" class="bg-yellow-50 text-yellow-600 p-2 rounded-lg hover:bg-yellow-100 transition" title="Nonaktifkan">
@@ -165,10 +183,6 @@
                                                         </button>
                                                     </form>
                                                 @endif
-
-                                                <a href="{{ route('admin.members.show', $member->id) }}" class="bg-white border border-gray-200 text-gray-600 p-2 rounded-lg hover:border-[#83218F] hover:text-[#83218F] transition" title="Detail">
-                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
-                                                </a>
 
                                                 @if($grade != 'alumni' && $grade != 'calon')
                                                     <form action="{{ route('admin.members.graduate', $member->id) }}" method="POST" onsubmit="return confirm('Nyatakan anggota ini LULUS?')">
