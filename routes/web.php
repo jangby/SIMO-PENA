@@ -221,36 +221,50 @@ require __DIR__.'/auth.php';
 
 /*
 |--------------------------------------------------------------------------
-| ROUTE PERBAIKAN DATABASE (Jalankan Sekali Saja di VPS)
+| ROUTE PERBAIKAN DATABASE (Versi Aman / Anti-Error)
 |--------------------------------------------------------------------------
 */
 Route::get('/fix-registration-link', function () {
-    // 1. Ambil pendaftaran yang user_id-nya NULL
+    // 1. Hubungkan User ID yang masih NULL
     $registrations = \App\Models\Registration::whereNull('user_id')->get();
-    $count = 0;
+    $linkCount = 0;
 
     foreach ($registrations as $reg) {
-        // 2. Cari user berdasarkan email yang sama
         $user = \App\Models\User::where('email', $reg->email)->first();
-        
         if ($user) {
-            // 3. Hubungkan kembali
             $reg->update(['user_id' => $user->id]);
-            $count++;
+            $linkCount++;
         }
     }
 
-    // 4. Sinkronisasi Data Gender & Sekolah (Opsional, untuk memastikan)
+    // 2. Sinkronisasi Data (Versi Safe Mode)
     $allRegistrations = \App\Models\Registration::whereNotNull('user_id')->get();
+    $syncCount = 0;
+
     foreach($allRegistrations as $reg) {
         $user = \App\Models\User::find($reg->user_id);
+        
+        // Pastikan User & Profile ada
         if($user && $user->profile) {
-            $reg->update([
-                'gender' => $user->profile->gender,
-                'school_origin' => $user->profile->school_origin
-            ]);
+            $dataToUpdate = [];
+
+            // Cek Gender: Update hanya jika di profile ada isinya
+            if (!empty($user->profile->gender)) {
+                $dataToUpdate['gender'] = $user->profile->gender;
+            }
+
+            // Cek Sekolah: Update hanya jika di profile ada isinya
+            if (!empty($user->profile->school_origin)) {
+                $dataToUpdate['school_origin'] = $user->profile->school_origin;
+            }
+
+            // Eksekusi update hanya jika ada data yang valid
+            if (!empty($dataToUpdate)) {
+                $reg->update($dataToUpdate);
+                $syncCount++;
+            }
         }
     }
 
-    return "BERHASIL: $count data pendaftaran telah dihubungkan kembali ke User ID. Sinkronisasi data gender juga telah dijalankan.";
+    return "BERHASIL: $linkCount user dihubungkan ulang. $syncCount data profil disinkronkan (melewati data yang kosong).";
 });
