@@ -221,50 +221,75 @@ require __DIR__.'/auth.php';
 
 /*
 |--------------------------------------------------------------------------
-| ROUTE PERBAIKAN DATABASE (Versi Aman / Anti-Error)
+| SCRIPT DIAGNOSA & PERBAIKAN DATA (Link by Email & Phone)
 |--------------------------------------------------------------------------
 */
-Route::get('/fix-registration-link', function () {
-    // 1. Hubungkan User ID yang masih NULL
-    $registrations = \App\Models\Registration::whereNull('user_id')->get();
-    $linkCount = 0;
+Route::get('/fix-data-v2', function () {
+    $log = [];
+    $log[] = "<h3>HASIL DIAGNOSA DATA:</h3>";
 
-    foreach ($registrations as $reg) {
-        $user = \App\Models\User::where('email', $reg->email)->first();
-        if ($user) {
-            $reg->update(['user_id' => $user->id]);
-            $linkCount++;
+    // 1. AMBIL DATA YANG PUTUS HUBUNGAN (User ID NULL)
+    $orphans = \App\Models\Registration::whereNull('user_id')->get();
+    $log[] = "Ditemukan <b>" . $orphans->count() . "</b> pendaftaran yang tidak punya User ID (Putus Hubungan).<br>";
+
+    $linkedCount = 0;
+    foreach ($orphans as $reg) {
+        $foundUser = null;
+        $method = '';
+
+        // A. Coba cari pakai Email
+        $foundUser = \App\Models\User::where('email', $reg->email)->first();
+        if ($foundUser) {
+            $method = 'Email';
+        } 
+        // B. Jika gagal, cari pakai No HP (Lewat Profile)
+        else {
+            $profile = \App\Models\Profile::where('phone', $reg->phone)->first();
+            if ($profile) {
+                $foundUser = $profile->user;
+                $method = 'No HP';
+            }
+        }
+
+        // EKSEKUSI PENJODOHAN
+        if ($foundUser) {
+            $reg->update(['user_id' => $foundUser->id]);
+            $linkedCount++;
+            $log[] = "<span style='color:green'>✅ BERHASIL LINK ($method):</span> {$reg->name} -> Disambungkan ke User ID {$foundUser->id}";
+        } else {
+            $log[] = "<span style='color:red'>❌ GAGAL LINK:</span> {$reg->name} (Email: {$reg->email}, HP: {$reg->phone}) -> <b>Tidak ditemukan Akun Kader yang cocok.</b>";
         }
     }
 
-    // 2. Sinkronisasi Data (Versi Safe Mode)
-    $allRegistrations = \App\Models\Registration::whereNotNull('user_id')->get();
+    $log[] = "<hr><b>Total Berhasil Disambungkan: $linkedCount</b><br>";
+
+    // 2. SINKRONISASI GENDER MASSAL (Hanya untuk yang sudah punya User ID)
+    $log[] = "<h3>SINKRONISASI GENDER:</h3>";
+    
+    $allRegs = \App\Models\Registration::whereNotNull('user_id')->get();
     $syncCount = 0;
 
-    foreach($allRegistrations as $reg) {
+    foreach ($allRegs as $reg) {
         $user = \App\Models\User::find($reg->user_id);
         
         // Pastikan User & Profile ada
-        if($user && $user->profile) {
-            $dataToUpdate = [];
+        if ($user && $user->profile) {
+            $genderKader = $user->profile->gender; // Gender di Database Kader
+            $genderEvent = $reg->gender;           // Gender di Event
 
-            // Cek Gender: Update hanya jika di profile ada isinya
-            if (!empty($user->profile->gender)) {
-                $dataToUpdate['gender'] = $user->profile->gender;
-            }
-
-            // Cek Sekolah: Update hanya jika di profile ada isinya
-            if (!empty($user->profile->school_origin)) {
-                $dataToUpdate['school_origin'] = $user->profile->school_origin;
-            }
-
-            // Eksekusi update hanya jika ada data yang valid
-            if (!empty($dataToUpdate)) {
-                $reg->update($dataToUpdate);
+            // Jika beda atau di event kosong, PAKSA UPDATE ikut data Kader
+            if ($genderKader && ($genderEvent !== $genderKader)) {
+                $reg->update([
+                    'gender' => $genderKader,
+                    'school_origin' => $user->profile->school_origin // Sekalian sekolahnya
+                ]);
                 $syncCount++;
+                $log[] = "🔄 UPDATE DATA: <b>{$reg->name}</b> diubah menjadi " . ($genderKader=='L'?'IPNU':'IPPNU');
             }
         }
     }
 
-    return "BERHASIL: $linkCount user dihubungkan ulang. $syncCount data profil disinkronkan (melewati data yang kosong).";
+    $log[] = "<br><b>Total Data Gender Diperbaiki: $syncCount</b>";
+
+    return implode('<br>', $log);
 });
