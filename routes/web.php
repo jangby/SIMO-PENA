@@ -210,4 +210,28 @@ Route::middleware(['auth', 'verified', 'panitia'])->prefix('panitia')->name('pan
 
 });
 
+
+// File: routes/web.php (Paling Bawah)
+
+Route::get('/fix-gender-data', function() {
+    // Ambil semua pendaftaran
+    $registrations = \App\Models\Registration::all();
+    $count = 0;
+
+    foreach($registrations as $reg) {
+        // Cari User & Profile pasangannya
+        $user = \App\Models\User::find($reg->user_id);
+        
+        if ($user && $user->profile) {
+            // Update gender di tabel registration sesuai data di profile
+            $reg->update([
+                'gender' => $user->profile->gender
+            ]);
+            $count++;
+        }
+    }
+
+    return "Berhasil memperbaiki data gender untuk $count peserta. Silakan hapus route ini.";
+});
+
 require __DIR__.'/auth.php';
