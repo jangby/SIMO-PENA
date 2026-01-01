@@ -22,16 +22,6 @@ use App\Services\WahaService;
 
 class EventManagementController extends Controller
 {
-    // --- HALAMAN 1: DATA PESERTA ---
-    public function participants(Event $event)
-    {
-        // Ambil peserta yang statusnya approved saja
-        $participants = $event->registrations()
-                        ->where('status', 'approved')
-                        ->latest()
-                        ->get();
-        return view('admin.events.participants', compact('event', 'participants'));
-    }
 
     // TAMPILKAN JADWAL (DIKELOMPOKKAN PER HARI)
     public function schedules(Event $event)
@@ -203,10 +193,39 @@ class EventManagementController extends Controller
         }
     }
 
-    public function exportExcel(Event $event)
-{
-    return Excel::download(new EventParticipantsExport($event->id), 'peserta-'.$event->id.'.xlsx');
-}
+    // --- HALAMAN 1: DATA PESERTA (UPDATE FILTER) ---
+    public function participants(Request $request, Event $event)
+    {
+        // Mulai Query
+        $query = $event->registrations()
+                       ->where('status', 'approved');
+
+        // Filter: Jika ada request 'gender' (L/P)
+        if ($request->has('gender') && $request->gender != '') {
+            $query->where('gender', $request->gender);
+        }
+
+        $participants = $query->latest()->get();
+
+        return view('admin.events.participants', compact('event', 'participants'));
+    }
+
+    // --- EXPORT EXCEL (UPDATE FILTER) ---
+    public function exportExcel(Request $request, Event $event)
+    {
+        // Ambil filter dari request (dikirim dari Modal)
+        $gender = $request->query('gender'); // Bisa null, 'L', atau 'P'
+        
+        // Buat nama file yang dinamis
+        $label = 'Semua';
+        if ($gender == 'L') $label = 'IPNU';
+        if ($gender == 'P') $label = 'IPPNU';
+
+        $fileName = 'Peserta_' . $label . '_' . $event->title . '.xlsx';
+
+        // Panggil Export Class dengan parameter gender
+        return Excel::download(new EventParticipantsExport($event->id, $gender), $fileName);
+    }
 
 public function printAllIdCards(Event $event)
     {
@@ -284,13 +303,20 @@ public function printAllIdCards(Event $event)
     }
 
     // --- HALAMAN 4: LIHAT QR CODE & DATA ---
-    public function showQrCodes(Event $event)
+    public function showQrCodes(Request $request, Event $event)
     {
-        // Ambil peserta yang sudah Approved
-        $participants = $event->registrations()
+        // 1. Mulai Query
+        $query = $event->registrations()
                         ->where('status', 'approved')
-                        ->orderBy('name')
-                        ->get();
+                        ->orderBy('name');
+
+        // 2. Cek Filter Gender
+        if ($request->has('gender') && $request->gender != '') {
+            $query->where('gender', $request->gender);
+        }
+
+        // 3. Eksekusi
+        $participants = $query->get();
 
         return view('admin.events.qr_codes', compact('event', 'participants'));
     }

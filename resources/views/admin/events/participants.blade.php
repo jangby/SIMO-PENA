@@ -28,25 +28,37 @@
                 </a>
 
                 <div class="flex flex-wrap gap-2">
-                    <button onclick="openModal()" class="flex items-center gap-2 bg-[#83218F] text-white px-5 py-2.5 rounded-xl font-bold text-sm hover:bg-purple-800 shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-0.5">
+                    <button onclick="openModal('manualModal')" class="flex items-center gap-2 bg-[#83218F] text-white px-5 py-2.5 rounded-xl font-bold text-sm hover:bg-purple-800 shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-0.5">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"></path></svg>
                         + Daftar Offline
                     </button>
 
-                    <a href="{{ route('admin.events.participants.export', $event->id) }}" class="flex items-center gap-2 bg-green-600 text-white px-5 py-2.5 rounded-xl font-bold text-sm hover:bg-green-700 shadow-md transition">
+                    <button onclick="openModal('exportModal')" class="flex items-center gap-2 bg-green-600 text-white px-5 py-2.5 rounded-xl font-bold text-sm hover:bg-green-700 shadow-md transition">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4-4m0 0l-4-4m4 4V4"></path></svg>
-                        Excel
-                    </a>
+                        Download Excel
+                    </button>
                 </div>
             </div>
 
             <div class="bg-white overflow-hidden shadow-xl sm:rounded-2xl border border-gray-100">
                 <div class="p-6">
                     <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
-                        <h3 class="font-bold text-lg text-gray-800 border-l-4 border-[#83218F] pl-3">
-                            Data Peserta Terdaftar
-                            <span class="text-xs font-normal text-white bg-[#83218F] px-2 py-0.5 rounded-full ml-2">{{ $participants->count() }}</span>
-                        </h3>
+                        
+                        <div class="flex items-center gap-4">
+                            <h3 class="font-bold text-lg text-gray-800 border-l-4 border-[#83218F] pl-3">
+                                Data Peserta
+                                <span class="text-xs font-normal text-white bg-[#83218F] px-2 py-0.5 rounded-full ml-2">{{ $participants->count() }}</span>
+                            </h3>
+                            
+                            <form action="{{ route('admin.events.participants', $event->id) }}" method="GET" class="flex items-center">
+                                <select name="gender" onchange="this.form.submit()" class="ml-2 text-sm border-gray-300 rounded-lg focus:ring-[#83218F] focus:border-[#83218F] shadow-sm">
+                                    <option value="">- Semua Peserta -</option>
+                                    <option value="L" {{ request('gender') == 'L' ? 'selected' : '' }}>IPNU (Laki-laki)</option>
+                                    <option value="P" {{ request('gender') == 'P' ? 'selected' : '' }}>IPPNU (Perempuan)</option>
+                                </select>
+                            </form>
+                        </div>
+
                         <div class="relative w-full md:w-64">
                             <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                                 <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
@@ -102,7 +114,7 @@
                                 @empty
                                 <tr>
                                     <td colspan="5" class="px-6 py-10 text-center text-gray-400">
-                                        Belum ada peserta yang terdaftar.
+                                        Tidak ada data peserta yang ditemukan.
                                     </td>
                                 </tr>
                                 @endforelse
@@ -114,9 +126,52 @@
         </div>
     </div>
 
+    <div id="exportModal" class="fixed inset-0 z-50 hidden overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+        <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
+            <div class="fixed inset-0 bg-gray-900 bg-opacity-75 transition-opacity blur-sm" aria-hidden="true" onclick="closeModal('exportModal')"></div>
+            <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+
+            <div class="inline-block align-bottom bg-white rounded-2xl text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-md sm:w-full">
+                <div class="bg-green-600 px-6 py-4 flex justify-between items-center">
+                    <h3 class="text-lg leading-6 font-bold text-white">Download Data Peserta</h3>
+                    <button type="button" onclick="closeModal('exportModal')" class="text-green-100 hover:text-white"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>
+                </div>
+                
+                <form action="{{ route('admin.events.participants.export', $event->id) }}" method="GET">
+                    <div class="px-6 py-6 bg-white">
+                        <p class="text-sm text-gray-600 mb-4">Pilih kategori peserta yang ingin diunduh:</p>
+                        
+                        <div class="space-y-3">
+                            <label class="flex items-center p-3 border rounded-xl hover:bg-gray-50 cursor-pointer transition">
+                                <input type="radio" name="gender" value="" checked class="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300">
+                                <span class="ml-3 font-medium text-gray-700">Semua Peserta</span>
+                            </label>
+                            
+                            <label class="flex items-center p-3 border rounded-xl hover:bg-blue-50 cursor-pointer transition">
+                                <input type="radio" name="gender" value="L" class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300">
+                                <span class="ml-3 font-medium text-gray-700">Hanya IPNU (Laki-laki)</span>
+                            </label>
+
+                            <label class="flex items-center p-3 border rounded-xl hover:bg-pink-50 cursor-pointer transition">
+                                <input type="radio" name="gender" value="P" class="h-4 w-4 text-pink-600 focus:ring-pink-500 border-gray-300">
+                                <span class="ml-3 font-medium text-gray-700">Hanya IPPNU (Perempuan)</span>
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-gray-50 px-6 py-4 flex flex-row-reverse rounded-b-2xl">
+                        <button type="submit" onclick="closeModal('exportModal')" class="w-full inline-flex justify-center rounded-xl border border-transparent shadow-sm px-4 py-2 bg-green-600 text-base font-medium text-white hover:bg-green-700 focus:outline-none sm:text-sm">
+                            Download .XLSX
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
     <div id="manualModal" class="fixed inset-0 z-50 hidden overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
         <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
-            <div class="fixed inset-0 bg-gray-900 bg-opacity-75 transition-opacity blur-sm" aria-hidden="true" onclick="closeModal()"></div>
+            <div class="fixed inset-0 bg-gray-900 bg-opacity-75 transition-opacity blur-sm" aria-hidden="true" onclick="closeModal('manualModal')"></div>
             <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
 
             <div class="inline-block align-bottom bg-white rounded-2xl text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-3xl sm:w-full">
@@ -125,7 +180,7 @@
                     <h3 class="text-lg leading-6 font-bold text-white" id="modal-title">
                         Form Pendaftaran Offline / Manual
                     </h3>
-                    <button type="button" onclick="closeModal()" class="text-purple-200 hover:text-white transition">
+                    <button type="button" onclick="closeModal('manualModal')" class="text-purple-200 hover:text-white transition">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
                     </button>
                 </div>
@@ -169,8 +224,8 @@
                                     <label class="block text-sm font-semibold text-gray-700 mb-1">Jenis Kelamin</label>
                                     <select name="gender" required class="w-full rounded-lg border-gray-300 focus:border-[#83218F] focus:ring focus:ring-[#83218F] focus:ring-opacity-20 transition shadow-sm">
                                         <option value="" disabled selected>- Pilih -</option>
-                                        <option value="L">Laki-laki</option>
-                                        <option value="P">Perempuan</option>
+                                        <option value="L">Laki-laki (IPNU)</option>
+                                        <option value="P">Perempuan (IPPNU)</option>
                                     </select>
                                 </div>
 
@@ -198,7 +253,7 @@
                         <button type="submit" class="w-full sm:w-auto inline-flex justify-center rounded-xl border border-transparent shadow-md px-6 py-2 bg-[#83218F] text-base font-bold text-white hover:bg-purple-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 transition">
                             Simpan Data
                         </button>
-                        <button type="button" onclick="closeModal()" class="w-full sm:w-auto inline-flex justify-center rounded-xl border border-gray-300 shadow-sm px-6 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none transition">
+                        <button type="button" onclick="closeModal('manualModal')" class="w-full sm:w-auto inline-flex justify-center rounded-xl border border-gray-300 shadow-sm px-6 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none transition">
                             Batal
                         </button>
                     </div>
@@ -208,7 +263,7 @@
     </div>
 
     <script>
-        // Search Filter
+        // Search Filter (Client Side)
         document.getElementById('search').addEventListener('keyup', function() {
             let value = this.value.toLowerCase();
             let rows = document.querySelectorAll('#tableBody tr');
@@ -218,13 +273,13 @@
             });
         });
 
-        // Modal Logic
-        function openModal() {
-            document.getElementById('manualModal').classList.remove('hidden');
+        // Modal Logic Dinamis (Bisa untuk banyak modal)
+        function openModal(modalId) {
+            document.getElementById(modalId).classList.remove('hidden');
         }
 
-        function closeModal() {
-            document.getElementById('manualModal').classList.add('hidden');
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.add('hidden');
         }
     </script>
 </x-admin-layout>
