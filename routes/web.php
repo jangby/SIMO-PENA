@@ -19,7 +19,8 @@ use App\Http\Controllers\Member\MyEventController;
 use App\Http\Controllers\Member\ArticleController as MemberArticleController;
 use App\Http\Controllers\Member\AttendanceController;
 use App\Http\Controllers\TourController;
-use App\Http\Controllers\PendaftaranController;
+use App\Http\Controllers\Admin\PanitiaAccountController;
+use App\Http\Controllers\Panitia\MobileController;
 
 /*
 |--------------------------------------------------------------------------
@@ -97,8 +98,12 @@ Route::middleware(['auth', 'verified', 'admin'])->group(function () {
     // 1. Data Anggota
     Route::get('/admin/members/export', [MemberController::class, 'export'])->name('admin.members.export');
     Route::get('/admin/members', [MemberController::class, 'index'])->name('admin.members.index');
+    
+    // --- FITUR EDIT ANGGOTA (WAJIB ADA UNTUK SINKRONISASI) ---
     Route::get('/admin/members/{user}/edit', [MemberController::class, 'edit'])->name('admin.members.edit');
     Route::put('/admin/members/{user}', [MemberController::class, 'update'])->name('admin.members.update');
+    // --------------------------------------------------------
+
     Route::get('/admin/members/{user}', [MemberController::class, 'show'])->name('admin.members.show');
 
     // 2. Pendaftaran Masuk
@@ -145,7 +150,7 @@ Route::middleware(['auth', 'verified', 'admin'])->group(function () {
         'destroy' => 'admin.events.destroy',
     ]);
 
-    Route::resource('/admin/panitia', \App\Http\Controllers\Admin\PanitiaAccountController::class)
+    Route::resource('/admin/panitia', PanitiaAccountController::class)
         ->names('admin.panitia')
         ->except(['show', 'edit', 'update']);
 
@@ -175,6 +180,9 @@ Route::middleware(['auth', 'verified', 'admin'])->group(function () {
         // Sertifikat
         Route::get('/certificates', [EventManagementController::class, 'certificates'])->name('certificates');
         Route::post('/certificates/{registration}', [EventManagementController::class, 'storeCertificate'])->name('certificates.store');
+        
+        // Cetak ID Card Massal
+        Route::get('/id-cards/print', [EventManagementController::class, 'printAllIdCards'])->name('idcards.print');
     });
 });
 
@@ -186,52 +194,63 @@ Route::middleware(['auth', 'verified', 'admin'])->group(function () {
 Route::middleware(['auth', 'verified', 'panitia'])->prefix('panitia')->name('panitia.')->group(function () {
     
     // Dashboard & Menu Utama
-    Route::get('/dashboard', [\App\Http\Controllers\Panitia\MobileController::class, 'index'])->name('dashboard');
-    Route::get('/scan', [\App\Http\Controllers\Panitia\MobileController::class, 'scan'])->name('scan');
-    Route::get('/attendance', [\App\Http\Controllers\Panitia\MobileController::class, 'attendance'])->name('attendance');
+    Route::get('/dashboard', [MobileController::class, 'index'])->name('dashboard');
+    Route::get('/scan', [MobileController::class, 'scan'])->name('scan');
+    Route::get('/attendance', [MobileController::class, 'attendance'])->name('attendance');
 
     // Proses Scan
-    Route::post('/scan-process', [\App\Http\Controllers\Admin\EventManagementController::class, 'scanQr'])->name('scan.process');
+    Route::post('/scan-process', [EventManagementController::class, 'scanQr'])->name('scan.process');
 
     // Detail Event
     Route::prefix('event/{id}')->group(function() {
-        Route::get('/', [\App\Http\Controllers\Panitia\MobileController::class, 'show'])->name('event.show');
-        Route::get('/participants', [\App\Http\Controllers\Panitia\MobileController::class, 'participants'])->name('event.participants');
-        Route::get('/schedules', [\App\Http\Controllers\Panitia\MobileController::class, 'schedules'])->name('event.schedules');
+        Route::get('/', [MobileController::class, 'show'])->name('event.show');
+        Route::get('/participants', [MobileController::class, 'participants'])->name('event.participants');
+        Route::get('/schedules', [MobileController::class, 'schedules'])->name('event.schedules');
         
         // Export PDF Rekap Utama
-        Route::get('/export-pdf', [\App\Http\Controllers\Panitia\MobileController::class, 'exportPdf'])->name('event.export_pdf');
+        Route::get('/export-pdf', [MobileController::class, 'exportPdf'])->name('event.export_pdf');
     });
     
-    // ===> PERBAIKAN ROUTE ERROR (DIPINDAH KE SINI) <===
-    // Export PDF Per Materi (Sekarang otomatis jadi: panitia.schedule.export_pdf)
-    Route::get('/schedule/{id}/export-pdf', [\App\Http\Controllers\Panitia\MobileController::class, 'exportSchedulePdf'])
+    // Export PDF Per Materi
+    Route::get('/schedule/{id}/export-pdf', [MobileController::class, 'exportSchedulePdf'])
         ->name('schedule.export_pdf');
 
 });
 
+require __DIR__.'/auth.php';
 
-// --- TEMPEL DI PALING BAWAH FILE routes/web.php ---
+/*
+|--------------------------------------------------------------------------
+| ROUTE PERBAIKAN DATABASE (Jalankan Sekali Saja di VPS)
+|--------------------------------------------------------------------------
+*/
+Route::get('/fix-registration-link', function () {
+    // 1. Ambil pendaftaran yang user_id-nya NULL
+    $registrations = \App\Models\Registration::whereNull('user_id')->get();
+    $count = 0;
 
-Route::get('/fix-gender-sync', function() {
-    // 1. Ambil semua data pendaftaran
-    $registrations = \App\Models\Registration::all();
-    $updatedCount = 0;
-
-    foreach($registrations as $reg) {
-        // 2. Cari Data Profil aslinya berdasarkan user_id
-        $profile = \App\Models\Profile::where('user_id', $reg->user_id)->first();
-
-        if ($profile) {
-            // 3. Paksa ubah gender di pendaftaran agar SAMA dengan gender di profil
-            $reg->update([
-                'gender' => $profile->gender
-            ]);
-            $updatedCount++;
+    foreach ($registrations as $reg) {
+        // 2. Cari user berdasarkan email yang sama
+        $user = \App\Models\User::where('email', $reg->email)->first();
+        
+        if ($user) {
+            // 3. Hubungkan kembali
+            $reg->update(['user_id' => $user->id]);
+            $count++;
         }
     }
 
-    return "BERHASIL! $updatedCount data peserta event telah disinkronkan gendernya sesuai Data Anggota.";
-});
+    // 4. Sinkronisasi Data Gender & Sekolah (Opsional, untuk memastikan)
+    $allRegistrations = \App\Models\Registration::whereNotNull('user_id')->get();
+    foreach($allRegistrations as $reg) {
+        $user = \App\Models\User::find($reg->user_id);
+        if($user && $user->profile) {
+            $reg->update([
+                'gender' => $user->profile->gender,
+                'school_origin' => $user->profile->school_origin
+            ]);
+        }
+    }
 
-require __DIR__.'/auth.php';
+    return "BERHASIL: $count data pendaftaran telah dihubungkan kembali ke User ID. Sinkronisasi data gender juga telah dijalankan.";
+});
