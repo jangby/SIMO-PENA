@@ -47,7 +47,7 @@ Route::get('/dashboard', function () {
         return redirect()->route('admin.dashboard');
     } 
     elseif ($role === 'panitia') {
-        return redirect()->route('panitia.dashboard'); // Redirect Panitia
+        return redirect()->route('panitia.dashboard');
     }
     
     return view('dashboard');
@@ -82,8 +82,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/absensi/{id}', [AttendanceController::class, 'show'])->name('member.attendance.show');
     Route::get('/kegiatan-saya/{id}/sertifikat', [MyEventController::class, 'downloadCertificate'])->name('my-events.certificate.download');
 
-
-Route::post('/complete-tour', [TourController::class, 'complete'])->name('tour.complete');
+    Route::post('/complete-tour', [TourController::class, 'complete'])->name('tour.complete');
 });
 
 /*
@@ -95,7 +94,7 @@ Route::middleware(['auth', 'verified', 'admin'])->group(function () {
 
     Route::get('/admin/dashboard', [DashboardController::class, 'index'])->name('admin.dashboard');
 
-    // 1. Data Anggota (Export harus di atas resource agar tidak tertimpa)
+    // 1. Data Anggota
     Route::get('/admin/members/export', [MemberController::class, 'export'])->name('admin.members.export');
     Route::get('/admin/members', [MemberController::class, 'index'])->name('admin.members.index');
     Route::get('/admin/members/{user}', [MemberController::class, 'show'])->name('admin.members.show');
@@ -114,31 +113,27 @@ Route::middleware(['auth', 'verified', 'admin'])->group(function () {
     Route::resource('/admin/structures', StructureController::class)->names('admin.structures');
     Route::resource('/admin/socials', SocialMediaController::class)->only(['index', 'store', 'destroy'])->names('admin.socials');
 
-    // Route Keuangan Lengkap
+    // Route Keuangan
     Route::get('/admin/finances', [FinanceController::class, 'index'])->name('admin.finances.index');
-    Route::post('/admin/finances', [FinanceController::class, 'store'])->name('admin.finances.store'); // Simpan
-    Route::get('/admin/finances/export', [FinanceController::class, 'export'])->name('admin.finances.export'); // Export
-    Route::delete('/admin/finances/{finance}', [FinanceController::class, 'destroy'])->name('admin.finances.destroy'); // Hapus
+    Route::post('/admin/finances', [FinanceController::class, 'store'])->name('admin.finances.store');
+    Route::get('/admin/finances/export', [FinanceController::class, 'export'])->name('admin.finances.export');
+    Route::delete('/admin/finances/{finance}', [FinanceController::class, 'destroy'])->name('admin.finances.destroy');
 
-    // 4. MANAJEMEN EVENT (Complex Routes)
+    // 4. MANAJEMEN EVENT
     
-    // A. Custom Routes Event (Harus di luar prefix group '{event}')
+    // Custom Routes Event
     Route::get('/admin/events/{event}/manage', [EventController::class, 'manage'])->name('admin.events.manage');
     Route::patch('/admin/events/{event}/update-status', [EventController::class, 'updateStatus'])->name('admin.events.status');
-    Route::patch('/admin/members/{user}/activate', [MemberController::class, 'activate'])->name('admin.members.activate');
-
+    
     // Aksi Member
+    Route::patch('/admin/members/{user}/activate', [MemberController::class, 'activate'])->name('admin.members.activate');
     Route::patch('/admin/members/{user}/deactivate', [MemberController::class, 'deactivate'])->name('admin.members.deactivate');
     Route::patch('/admin/members/{user}/graduate', [MemberController::class, 'graduate'])->name('admin.members.graduate');
-    
-    // Aksi Sampah (Restore & Force Delete)
     Route::patch('/admin/members/{id}/restore', [MemberController::class, 'restore'])->name('admin.members.restore');
     Route::delete('/admin/members/{id}/force-delete', [MemberController::class, 'forceDelete'])->name('admin.members.force_delete');
-    
-    // Route Resource yang lama (Pastikan destroy ada)
     Route::delete('/admin/members/{user}', [MemberController::class, 'destroy'])->name('admin.members.destroy');
 
-    // B. Resource Event
+    // Resource Event
     Route::resource('/admin/events', EventController::class)->names([
         'index' => 'admin.events.index',
         'create' => 'admin.events.create',
@@ -152,21 +147,16 @@ Route::middleware(['auth', 'verified', 'admin'])->group(function () {
         ->names('admin.panitia')
         ->except(['show', 'edit', 'update']);
 
-    // C. Sub-Menu Event (Participants, Schedules, Attendance)
-    // Prefix ini otomatis menambahkan '/admin/events/{event}' ke semua URL di bawahnya
+    // Sub-Menu Event
     Route::prefix('admin/events/{event}')->name('admin.events.')->group(function () {
-        
         // Data Peserta
         Route::get('/participants', [EventManagementController::class, 'participants'])->name('participants');
         Route::get('/participants/export', [EventManagementController::class, 'exportExcel'])->name('participants.export');
-
-        Route::post('/participants/store', [EventManagementController::class, 'storeParticipant'])
-        ->name('participants.store');
-        // 1. Ganti route cetak massal lama ke halaman view QR Code
-Route::get('/qr-codes', [EventManagementController::class, 'showQrCodes'])->name('qr.codes');
-
-// 2. Tambahkan route untuk download QR Code spesifik (PNG)
-Route::get('/qr-codes/{registration}/download', [EventManagementController::class, 'downloadQrCode'])->name('qr.download');
+        Route::post('/participants/store', [EventManagementController::class, 'storeParticipant'])->name('participants.store');
+        
+        // QR Codes
+        Route::get('/qr-codes', [EventManagementController::class, 'showQrCodes'])->name('qr.codes');
+        Route::get('/qr-codes/{registration}/download', [EventManagementController::class, 'downloadQrCode'])->name('qr.download');
         
         // Jadwal (Rundown)
         Route::get('/schedules', [EventManagementController::class, 'schedules'])->name('schedules');
@@ -179,7 +169,8 @@ Route::get('/qr-codes/{registration}/download', [EventManagementController::clas
         Route::post('/attendance/{registration}/cancel', [EventManagementController::class, 'cancelCheckIn'])->name('attendance.cancel');
         Route::post('/scan-qr', [EventManagementController::class, 'scanQr'])->name('attendance.scan');
         Route::post('/certificate', [EventManagementController::class, 'uploadCertificate'])->name('certificate.upload');
-        // Route Kelola Sertifikat
+        
+        // Sertifikat
         Route::get('/certificates', [EventManagementController::class, 'certificates'])->name('certificates');
         Route::post('/certificates/{registration}', [EventManagementController::class, 'storeCertificate'])->name('certificates.store');
     });
@@ -192,26 +183,29 @@ Route::get('/qr-codes/{registration}/download', [EventManagementController::clas
 */
 Route::middleware(['auth', 'verified', 'panitia'])->prefix('panitia')->name('panitia.')->group(function () {
     
+    // Dashboard & Menu Utama
     Route::get('/dashboard', [\App\Http\Controllers\Panitia\MobileController::class, 'index'])->name('dashboard');
     Route::get('/scan', [\App\Http\Controllers\Panitia\MobileController::class, 'scan'])->name('scan');
     Route::get('/attendance', [\App\Http\Controllers\Panitia\MobileController::class, 'attendance'])->name('attendance');
 
+    // Proses Scan
+    Route::post('/scan-process', [\App\Http\Controllers\Admin\EventManagementController::class, 'scanQr'])->name('scan.process');
+
+    // Detail Event
     Route::prefix('event/{id}')->group(function() {
         Route::get('/', [\App\Http\Controllers\Panitia\MobileController::class, 'show'])->name('event.show');
         Route::get('/participants', [\App\Http\Controllers\Panitia\MobileController::class, 'participants'])->name('event.participants');
         Route::get('/schedules', [\App\Http\Controllers\Panitia\MobileController::class, 'schedules'])->name('event.schedules');
+        
+        // Export PDF Rekap Utama
+        Route::get('/export-pdf', [\App\Http\Controllers\Panitia\MobileController::class, 'exportPdf'])->name('event.export_pdf');
     });
     
-    Route::post('/scan-process', [\App\Http\Controllers\Admin\EventManagementController::class, 'scanQr'])->name('scan.process');
-
-    Route::get('/event/{id}/export-pdf', [\App\Http\Controllers\Panitia\MobileController::class, 'exportPdf'])->name('event.export_pdf');
-
-});
-
-// ===> ROUTE YANG ERROR KEMARIN (Letakkan di sini) <===
-Route::middleware(['auth', 'verified', 'panitia'])->group(function () {
-    Route::get('/panitia/schedule/{id}/export-pdf', [\App\Http\Controllers\Panitia\MobileController::class, 'exportSchedulePdf'])
+    // ===> PERBAIKAN ROUTE ERROR (DIPINDAH KE SINI) <===
+    // Export PDF Per Materi (Sekarang otomatis jadi: panitia.schedule.export_pdf)
+    Route::get('/schedule/{id}/export-pdf', [\App\Http\Controllers\Panitia\MobileController::class, 'exportSchedulePdf'])
         ->name('schedule.export_pdf');
+
 });
 
 require __DIR__.'/auth.php';

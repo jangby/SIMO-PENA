@@ -6,7 +6,8 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Event;
 use App\Models\Registration;
-use Barryvdh\DomPDF\Facade\Pdf; // Pastikan import ini
+use App\Models\EventSchedule;
+use Barryvdh\DomPDF\Facade\Pdf; // Import PDF Facade
 
 class MobileController extends Controller
 {
@@ -18,16 +19,17 @@ class MobileController extends Controller
     }
 
     public function exportPdf($id)
-{
-    $event = Event::with(['registrations' => function($q) {
-        $q->where('status', 'approved')->orderBy('name');
-    }, 'schedules'])->findOrFail($id);
+    {
+        // Ambil SEMUA peserta yang approved (jangan di filter gender disini)
+        $event = Event::with(['registrations' => function($q) {
+            $q->where('status', 'approved')->orderBy('name');
+        }, 'schedules'])->findOrFail($id);
 
-    // Load View PDF
-    $pdf = Pdf::loadView('panitia.events.pdf_recap', compact('event'));
-    
-    return $pdf->download('Rekap_Absensi_'.$event->title.'.pdf');
-}
+        // Load View PDF
+        $pdf = Pdf::loadView('panitia.events.pdf_recap', compact('event'));
+        
+        return $pdf->download('Rekap_Absensi_'.$event->title.'.pdf');
+    }
 
     public function scan(Request $request)
     {
@@ -37,7 +39,7 @@ class MobileController extends Controller
         // 2. Jika tidak ada ID, ambil semua event aktif (Jaga-jaga)
         if (!$eventId) {
             $events = Event::where('status', '!=', 'draft')->with('schedules')->get();
-            return view('panitia.scan_general', compact('events')); // (Opsional: buat view scan umum jika perlu)
+            return view('panitia.scan_general', compact('events'));
         }
 
         // 3. Ambil Event SPESIFIK beserta Rundown-nya (Diurutkan jam mulai)
@@ -51,7 +53,6 @@ class MobileController extends Controller
     public function attendance(Request $request)
     {
         // 1. DATA UNTUK TAB 1: Daftar Ulang (Check-in Awal)
-        // Tetap pakai pagination biar ringan
         $query = Registration::where('status', 'approved')->whereNotNull('presence_at');
         
         if ($request->has('event_id')) {
@@ -62,7 +63,7 @@ class MobileController extends Controller
 
         // 2. DATA UNTUK TAB 2: Per Materi
         $schedules = [];
-        $allParticipants = collect(); // Koleksi kosong default
+        $allParticipants = collect();
 
         if ($request->has('event_id')) {
             $event = Event::with([
@@ -89,12 +90,12 @@ class MobileController extends Controller
     public function exportSchedulePdf($id)
     {
         // Ambil data jadwal beserta event dan semua pesertanya
-        $schedule = \App\Models\EventSchedule::with(['event.registrations' => function($q) {
+        $schedule = EventSchedule::with(['event.registrations' => function($q) {
             $q->where('status', 'approved')->orderBy('name');
         }, 'attendances'])->findOrFail($id);
 
         // Load View PDF
-        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('panitia.events.pdf_schedule', compact('schedule'));
+        $pdf = Pdf::loadView('panitia.events.pdf_schedule', compact('schedule'));
         
         // Nama file aman
         $fileName = 'Absensi_' . preg_replace('/[^A-Za-z0-9]/', '_', $schedule->activity) . '.pdf';
@@ -116,7 +117,7 @@ class MobileController extends Controller
         // Ambil 5 orang yang barusan absen
         $recentPresences = Registration::where('event_id', $id)
             ->whereNotNull('presence_at')
-            ->with('user.profile') // Eager load profile
+            ->with('user.profile')
             ->orderBy('presence_at', 'desc')
             ->limit(5)
             ->get();
@@ -124,19 +125,26 @@ class MobileController extends Controller
         return view('panitia.events.show', compact('event', 'recentPresences'));
     }
 
-    // --- FITUR BARU: DAFTAR PESERTA ---
+    // --- FITUR BARU: DAFTAR PESERTA (DENGAN FILTER GENDER) ---
     public function participants(Request $request, $id)
     {
         $event = Event::findOrFail($id);
         
+        // Base Query
         $query = $event->registrations()->where('status', 'approved');
 
-        // Fitur Pencarian Peserta
-        if ($request->has('search')) {
+        // 1. Filter Gender (IPNU/IPPNU)
+        if ($request->has('gender') && $request->gender != '') {
+            $query->where('gender', $request->gender);
+        }
+
+        // 2. Fitur Pencarian Peserta
+        if ($request->has('search') && $request->search != '') {
             $search = $request->search;
             $query->where('name', 'like', "%{$search}%");
         }
 
+        // Ambil Data
         $participants = $query->orderBy('name')->paginate(20);
 
         return view('panitia.events.participants', compact('event', 'participants'));

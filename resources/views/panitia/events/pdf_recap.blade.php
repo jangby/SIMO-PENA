@@ -1,184 +1,128 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Rekap Absensi Event</title>
+    <title>Rekap Absensi - {{ $event->title }}</title>
     <style>
-        /* Menggunakan font DejaVu Sans agar simbol Checkmark (✔) terbaca dan tidak jadi tanda tanya (?) */
-        body { 
-            font-family: 'DejaVu Sans', sans-serif; 
-            font-size: 9pt; 
-            color: #333;
-        }
-
-        /* KOP SURAT */
-        .header-container {
-            text-align: center;
-            margin-bottom: 20px;
-            padding-bottom: 10px;
-            border-bottom: 2px solid #333;
-        }
-        .header-title {
-            font-size: 16pt;
-            font-weight: bold;
-            text-transform: uppercase;
-            margin: 0;
-            color: #83218F; /* Warna Ungu IPNU */
-        }
-        .header-subtitle {
-            font-size: 10pt;
-            margin: 5px 0;
-            font-weight: bold;
-        }
-        .header-info {
-            font-size: 9pt;
-            margin: 0;
-            color: #555;
-        }
-
-        /* TABEL UTAMA */
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 10px;
-        }
-        th, td {
-            border: 1px solid #444;
-            padding: 6px 4px;
-            vertical-align: middle;
-        }
-        th {
-            background-color: #f2f2f2;
-            font-weight: bold;
-            text-align: center;
-            font-size: 8pt;
-            text-transform: uppercase;
-        }
+        body { font-family: sans-serif; font-size: 12px; }
+        .header { text-align: center; margin-bottom: 20px; }
+        .header h2 { margin: 0; text-transform: uppercase; }
+        .header p { margin: 2px 0; color: #555; }
         
-        /* Zebra Striping (Baris selang-seling warna) */
-        tr:nth-child(even) {
-            background-color: #f9f9f9;
-        }
+        table { width: 100%; border-collapse: collapse; margin-bottom: 10px; }
+        th, td { border: 1px solid #333; padding: 6px 8px; text-align: left; }
+        th { background-color: #f2f2f2; font-weight: bold; text-align: center; }
+        .center { text-align: center; }
+        
+        /* CLASS PENTING UNTUK PISAH HALAMAN */
+        .page-break { page-break-after: always; }
 
-        /* Style Kolom */
-        .col-no { width: 5%; text-align: center; }
-        .col-nama { width: 25%; }
-        .col-check { width: 8%; text-align: center; font-size: 10pt; }
-
-        .hadir { color: green; font-weight: bold; }
-        .absen { color: #ccc; font-weight: normal; }
-        .alpha { color: red; font-weight: bold; font-size: 8pt; }
-
-        /* SUMMARY & TANDA TANGAN */
-        .footer-section {
-            margin-top: 30px;
-            width: 100%;
+        .category-title {
+            background-color: #83218F; /* Warna Khas */
+            color: white;
+            padding: 5px 10px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            border-radius: 4px;
+            display: inline-block;
         }
-        .stats-box {
-            float: left;
-            width: 40%;
-            border: 1px solid #ddd;
-            padding: 10px;
-            background: #fdfdfd;
-        }
-        .signature-box {
-            float: right;
-            width: 40%;
-            text-align: center;
-        }
-        .sign-space {
-            height: 60px;
-        }
-        .clear { clear: both; }
+        .signature-box { height: 30px; }
     </style>
 </head>
 <body>
 
-    {{-- KOP SURAT --}}
-    <div class="header-container">
-        <h1 class="header-title">{{ $event->title }}</h1>
-        <p class="header-subtitle">LAPORAN REKAPITULASI ABSENSI PESERTA</p>
-        <p class="header-info">
-            Lokasi: {{ $event->location }} | 
-            Tanggal: {{ \Carbon\Carbon::parse($event->start_time)->isoFormat('D MMMM Y') }}
-        </p>
+    {{-- LOGIC PEMISAHAN DATA --}}
+    @php
+        $pesertaIpnu = $event->registrations->where('gender', 'L')->sortBy('name');
+        $pesertaIppnu = $event->registrations->where('gender', 'P')->sortBy('name');
+    @endphp
+
+    {{-- ================= HALAMAN 1: IPNU ================= --}}
+    <div class="header">
+        <h2>DAFTAR HADIR PESERTA</h2>
+        <p><strong>{{ $event->title }}</strong></p>
+        <p>{{ \Carbon\Carbon::parse($event->event_date)->isoFormat('D MMMM Y') }} | {{ $event->location }}</p>
     </div>
 
-    {{-- TABEL MATRIKS ABSENSI --}}
+    <div class="category-title" style="background-color: #0d6efd;">KHUSUS IPNU (REKAN)</div>
+
     <table>
         <thead>
             <tr>
-                <th class="col-no">No</th>
-                <th class="col-nama">Nama Peserta / Delegasi</th>
-                
-                {{-- Kolom Daftar Ulang --}}
-                <th class="col-check" style="background-color: #e6fffa;">Daftar Ulang</th>
-
-                {{-- Loop Kolom Materi --}}
-                @foreach($event->schedules as $sched)
-                    <th class="col-check" title="{{ $sched->activity }}">
-                        {{ Str::limit($sched->activity, 15, '..') }}
-                    </th>
-                @endforeach
+                <th width="5%">No</th>
+                <th width="35%">Nama Lengkap</th>
+                <th width="30%">Asal Sekolah / Instansi</th>
+                <th width="15%">Waktu Hadir</th>
+                <th width="15%">Paraf</th>
             </tr>
         </thead>
         <tbody>
-            @foreach($event->registrations as $i => $reg)
+            @forelse($pesertaIpnu as $index => $p)
             <tr>
-                <td class="col-no">{{ $i + 1 }}</td>
-                <td class="col-nama">
-                    <strong>{{ $reg->name }}</strong><br>
-                    <span style="font-size: 8pt; color: #555;">{{ $reg->school_origin }}</span>
+                <td class="center">{{ $loop->iteration }}</td>
+                <td>{{ $p->name }}</td>
+                <td>{{ $p->school_origin }}</td>
+                <td class="center">
+                    @if($p->presence_at)
+                        {{ \Carbon\Carbon::parse($p->presence_at)->format('H:i') }}
+                    @else
+                        -
+                    @endif
                 </td>
-                
-                {{-- STATUS DAFTAR ULANG --}}
-                <td class="col-check {{ $reg->presence_at ? 'hadir' : 'alpha' }}" style="background-color: {{ $reg->presence_at ? '#f0fff4' : '#fff5f5' }};">
-                    {{ $reg->presence_at ? '✔' : 'X' }}
-                </td>
-
-                {{-- STATUS PER MATERI --}}
-                @foreach($event->schedules as $sched)
-                    @php
-                        $isPresent = \App\Models\ScheduleAttendance::where('registration_id', $reg->id)
-                                    ->where('event_schedule_id', $sched->id)
-                                    ->exists();
-                    @endphp
-                    <td class="col-check {{ $isPresent ? 'hadir' : 'absen' }}">
-                        {{ $isPresent ? '✔' : '-' }}
-                    </td>
-                @endforeach
+                <td class="signature-box"></td>
             </tr>
-            @endforeach
+            @empty
+            <tr>
+                <td colspan="5" class="center">Tidak ada peserta IPNU.</td>
+            </tr>
+            @endforelse
         </tbody>
     </table>
 
-    {{-- FOOTER (Statistik & Tanda Tangan) --}}
-    <div class="footer-section">
-        
-        {{-- Statistik Ringkas --}}
-        <div class="stats-box">
-            <strong>Statistik Kehadiran:</strong><br>
-            <table style="margin-top: 5px; font-size: 8pt; border: none;">
-                <tr>
-                    <td style="border: none; padding: 2px;">Total Peserta Terdaftar</td>
-                    <td style="border: none; padding: 2px;">: {{ $event->registrations->count() }} Orang</td>
-                </tr>
-                <tr>
-                    <td style="border: none; padding: 2px;">Sudah Daftar Ulang</td>
-                    <td style="border: none; padding: 2px;">: {{ $event->registrations->whereNotNull('presence_at')->count() }} Orang</td>
-                </tr>
-            </table>
-        </div>
+    {{-- PEMISAH HALAMAN OTOMATIS --}}
+    <div class="page-break"></div>
 
-        {{-- Kolom Tanda Tangan --}}
-        <div class="signature-box">
-            <p>{{ $event->location }}, {{ date('d F Y') }}</p>
-            <p>Ketua Panitia,</p>
-            <div class="sign-space"></div>
-            <p><strong>( ..................................... )</strong></p>
-        </div>
 
-        <div class="clear"></div>
+    {{-- ================= HALAMAN 2: IPPNU ================= --}}
+    <div class="header">
+        <h2>DAFTAR HADIR PESERTA</h2>
+        <p><strong>{{ $event->title }}</strong></p>
+        <p>{{ \Carbon\Carbon::parse($event->event_date)->isoFormat('D MMMM Y') }} | {{ $event->location }}</p>
     </div>
+
+    <div class="category-title" style="background-color: #d63384;">KHUSUS IPPNU (REKANITA)</div>
+
+    <table>
+        <thead>
+            <tr>
+                <th width="5%">No</th>
+                <th width="35%">Nama Lengkap</th>
+                <th width="30%">Asal Sekolah / Instansi</th>
+                <th width="15%">Waktu Hadir</th>
+                <th width="15%">Paraf</th>
+            </tr>
+        </thead>
+        <tbody>
+            @forelse($pesertaIppnu as $index => $p)
+            <tr>
+                <td class="center">{{ $loop->iteration }}</td>
+                <td>{{ $p->name }}</td>
+                <td>{{ $p->school_origin }}</td>
+                <td class="center">
+                    @if($p->presence_at)
+                        {{ \Carbon\Carbon::parse($p->presence_at)->format('H:i') }}
+                    @else
+                        -
+                    @endif
+                </td>
+                <td class="signature-box"></td>
+            </tr>
+            @empty
+            <tr>
+                <td colspan="5" class="center">Tidak ada peserta IPPNU.</td>
+            </tr>
+            @endforelse
+        </tbody>
+    </table>
 
 </body>
 </html>
